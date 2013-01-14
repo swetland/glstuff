@@ -112,6 +112,9 @@ int main(int argc, char **argv) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,  2);
 #endif
 
+	/* enable vsync */
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL,1);
+
 #if WITH_SDL2
 	if (!(w = SDL_CreateWindow("Test", 0, 0, c.width, c.height,
 		SDL_WINDOW_OPENGL)))
