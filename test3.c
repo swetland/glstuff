@@ -87,8 +87,6 @@ int scene_init(struct ctxt *c) {
 	return 0;
 }
 
-#include "data.h"
-
 int scene_draw(struct ctxt *c) {
 	mat4 camera;
 
