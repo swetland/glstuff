@@ -52,5 +52,15 @@ void mtx_perspective(mat4 out,
 void *load_png_rgba(const char *fn, unsigned *width, unsigned *height);
 void *load_file(const char *fn, unsigned *sz);
 
+/* model helpers */
+
+struct model {
+	float *vdata; /* { vertex[3], normal[3], texcoord[2] } * vcount */
+	unsigned short *idx;
+	unsigned vcount;
+	unsigned icount;
+};
+
+struct model *load_wavefront_obj(const char *fn);
 #endif
 
