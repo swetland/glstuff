@@ -27,7 +27,6 @@ void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch) {
 	png_uint_32 w, h;
 	int depth, ctype, itype, i;
 	png_byte *data = 0;
-	png_byte **rows = 0;
 	FILE *fp;
 
 	if ((fp = fopen(fn, "rb")) == NULL)
@@ -88,23 +87,16 @@ void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch) {
 		png_error(png, "unsupported channel count");
 	}
 
-	data = malloc(w * h * ch);
-	rows = malloc(h * sizeof(png_byte*));
-
-	if (!data || !rows)
+	if (!(data = malloc(w * h * ch)))
 		png_error(png, "cannot allocate image buffer");
 
-	for (i = 0; i < h; i++)
-		rows[h-i-1] = data + (i * w * ch);
-
-	png_read_image(png, rows);
+	for (i = h-1; i >= 0; i--)
+		png_read_row(png, data + (i * w * ch), NULL);
 
 	*_width = w;
 	*_height = h;
 
 destroy_and_exit:
-	if (rows)
-		free(rows);
 	png_destroy_read_struct(&png, &info, NULL);
 
 close_and_exit:
