@@ -50,6 +50,7 @@ void mtx_perspective(mat4 out,
 
 /* file io helpers */
 void *load_png_rgba(const char *fn, unsigned *width, unsigned *height);
+void *load_png_gray(const char *fn, unsigned *width, unsigned *height);
 void *load_file(const char *fn, unsigned *sz);
 
 /* model helpers */

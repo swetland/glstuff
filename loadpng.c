@@ -21,7 +21,7 @@
 
 #include "util.h"
 
-void *load_png_rgba(const char *fn, unsigned *_width, unsigned *_height) {
+void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch) {
 	png_structp png;
 	png_infop info;
 	png_uint_32 w, h;
@@ -70,23 +70,32 @@ void *load_png_rgba(const char *fn, unsigned *_width, unsigned *_height) {
 	if (png_get_valid(png, info, PNG_INFO_tRNS))
 		png_set_expand(png);
 
-	if ((ctype == PNG_COLOR_TYPE_RGB) ||
-		(ctype == PNG_COLOR_TYPE_GRAY))
-		png_set_add_alpha(png, 0xFF, PNG_FILLER_AFTER);
+	if (ch == 4) {
+		if ((ctype == PNG_COLOR_TYPE_RGB) ||
+			(ctype == PNG_COLOR_TYPE_GRAY))
+			png_set_add_alpha(png, 0xFF, PNG_FILLER_AFTER);
 
-	if ((ctype == PNG_COLOR_TYPE_GRAY) ||
-		(ctype == PNG_COLOR_TYPE_GRAY_ALPHA))
-		png_set_gray_to_rgb(png);
+		if ((ctype == PNG_COLOR_TYPE_GRAY) ||
+			(ctype == PNG_COLOR_TYPE_GRAY_ALPHA))
+			png_set_gray_to_rgb(png);
+	} else if (ch == 1) {
+		if ((ctype == PNG_COLOR_TYPE_RGB) ||
+			(ctype == PNG_COLOR_TYPE_RGB_ALPHA))
+			png_set_rgb_to_gray_fixed(png, 1, -1, -1);
 
+		png_set_strip_alpha(png);
+	} else {
+		png_error(png, "unsupported channel count");
+	}
 
-	data = malloc(w * h * 4);
+	data = malloc(w * h * ch);
 	rows = malloc(h * sizeof(png_byte*));
 
 	if (!data || !rows)
 		png_error(png, "cannot allocate image buffer");
 
 	for (i = 0; i < h; i++)
-		rows[h-i-1] = data + (i * w * 4);
+		rows[h-i-1] = data + (i * w * ch);
 
 	png_read_image(png, rows);
 
@@ -105,3 +114,12 @@ exit:
 		fprintf(stderr,"failed to load '%s'\n", fn);
 	return data;
 }
+
+void *load_png_rgba(const char *fn, unsigned *_width, unsigned *_height) {
+	return _load_png(fn, _width, _height, 4);
+}
+
+void *load_png_gray(const char *fn, unsigned *_width, unsigned *_height) {
+	return _load_png(fn, _width, _height, 1);
+}
+
