@@ -74,14 +74,13 @@ int main(int argc, char **argv) {
 	unsigned mw, mh;
 	int x, y;
 
-	if (argc < 2) {
-		fprintf(stderr,"usage: mksdf <pngfile> [ <size> ]\n");
+	if (argc != 4) {
+		fprintf(stderr,"usage: mksdf <pngfile> <size> <outfile>\n");
 		return -1;
-	} else if (argc < 3) {
-		mw = mh = 64;
-	} else {
-		mw = mh = atoi(argv[2]);
 	}
+
+	mw = mh = atoi(argv[2]);
+
 	if (!(map = malloc(mw * mh))) {
 		fprintf(stderr,"out of memory\n");
 		return -1;
@@ -95,15 +94,6 @@ int main(int argc, char **argv) {
 
 	generate(map, mw, mh, tw / mw);
 
-	/* output an ascii PGM for now */
-	printf("P2\n%d %d\n255\n", mw, mh);
-	for (y = 0; y < mh; y++) {
-		for (x = 0; x < mw; x++) 
-			printf("%d ", map[y*mw + x]);
-		printf("\n");
-	}
-	printf("\n");
-
-	return 0;
+	return save_png_gray(argv[3], map, mw, mh);
 }
 

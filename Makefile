@@ -12,8 +12,8 @@ COMMONOBJS := util.o sdlglue.o loadpng.o loadfile.o loadobj.o
 
 all: test1 test2 test3 test4 mksdf
 
-mksdf: mksdf.c loadpng.c
-	gcc -g -Wall -o mksdf mksdf.c loadpng.c -lm -lpng
+mksdf: mksdf.c loadpng.c savepng.c
+	gcc -g -Wall -o mksdf mksdf.c loadpng.c savepng.c -lm -lpng
 
 TEST1OBJS := test1.o $(COMMONOBJS)
 test1: $(TEST1OBJS)
