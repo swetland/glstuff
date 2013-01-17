@@ -42,7 +42,7 @@ struct model *m;
 int scene_init(struct ctxt *c) {
 	float aspect = ((float) c->width) / ((float) c->height);
 
-	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh))) 
+	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
 	if (!(vert_src = load_file("test1.vertex.glsl", 0)))
 		return -1;

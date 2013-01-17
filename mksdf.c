@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-	tex = load_png_gray(argv[1], &tw, &th);
+	tex = load_png_gray(argv[1], &tw, &th, 0);
 	if (!tex) {
 		fprintf(stderr,"cannot load source image '%s'\n", argv[1]);
 		return -1;
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 
 	/* output an ascii PGM for now */
 	printf("P2\n%d %d\n255\n", mw, mh);
-	for (y = mh - 1; y >= 0; y--) {
+	for (y = 0; y < mh; y++) {
 		for (x = 0; x < mw; x++) 
 			printf("%d ", map[y*mw + x]);
 		printf("\n");

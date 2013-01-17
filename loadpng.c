@@ -21,7 +21,7 @@
 
 #include "util.h"
 
-void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch) {
+void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch, int inverty) {
 	png_structp png;
 	png_infop info;
 	png_uint_32 w, h;
@@ -90,8 +90,12 @@ void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch) {
 	if (!(data = malloc(w * h * ch)))
 		png_error(png, "cannot allocate image buffer");
 
-	for (i = h-1; i >= 0; i--)
-		png_read_row(png, data + (i * w * ch), NULL);
+	if (inverty)
+		for (i = h-1; i >= 0; i--)
+			png_read_row(png, data + (i * w * ch), NULL);
+	else
+		for (i = 0; i < h; i++)
+			png_read_row(png, data + (i * w * ch), NULL);
 
 	*_width = w;
 	*_height = h;
@@ -107,11 +111,11 @@ exit:
 	return data;
 }
 
-void *load_png_rgba(const char *fn, unsigned *_width, unsigned *_height) {
-	return _load_png(fn, _width, _height, 4);
+void *load_png_rgba(const char *fn, unsigned *_width, unsigned *_height, int texture) {
+	return _load_png(fn, _width, _height, 4, texture);
 }
 
-void *load_png_gray(const char *fn, unsigned *_width, unsigned *_height) {
-	return _load_png(fn, _width, _height, 1);
+void *load_png_gray(const char *fn, unsigned *_width, unsigned *_height, int texture) {
+	return _load_png(fn, _width, _height, 1, texture);
 }
 

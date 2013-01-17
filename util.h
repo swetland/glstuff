@@ -49,8 +49,8 @@ void mtx_perspective(mat4 out,
 	float znear, float zfar);
 
 /* file io helpers */
-void *load_png_rgba(const char *fn, unsigned *width, unsigned *height);
-void *load_png_gray(const char *fn, unsigned *width, unsigned *height);
+void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int texture);
+void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int texture);
 void *load_file(const char *fn, unsigned *sz);
 
 /* model helpers */
