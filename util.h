@@ -53,6 +53,9 @@ void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int textu
 void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int texture);
 void *load_file(const char *fn, unsigned *sz);
 
+int save_png_rgba(const char *fn, void *data, unsigned width, unsigned height);
+int save_png_gray(const char *fn, void *data, unsigned width, unsigned height);
+
 /* model helpers */
 
 struct model {
