@@ -161,11 +161,16 @@ int main(int argc, char **argv) {
 		if (scene_draw(&c))
 			return -1;
 
+		if (vsync) {
 #if WITH_SDL2 
-		SDL_GL_SwapWindow(w);
+			SDL_GL_SwapWindow(w);
 #else
-		SDL_GL_SwapBuffers();
+			SDL_GL_SwapBuffers();
 #endif
+		} else {
+			glFlush();
+		}
+
 		t1 = time(0);
 		count++;
 		if (t0 != t1) {
