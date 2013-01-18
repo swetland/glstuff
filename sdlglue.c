@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sys/time.h>
+
 #include "util.h"
 #include "glue.h"
 
@@ -71,7 +73,8 @@ void handle_events(void) {
 	SDL_Event ev;
 
 	while (SDL_PollEvent(&ev)) {
-		switch (ev.type) {
+		switch (ev./* Copyright 2013, Brian Swetland <swetland@frotz.net> */
+type) {
 		case SDL_KEYDOWN:
 		case SDL_QUIT:
 			SDL_Quit();
@@ -81,7 +84,11 @@ void handle_events(void) {
 }
 
 int main(int argc, char **argv) {
+	int vsync = 1;
 	struct ctxt c;
+	char *x;
+	time_t t0, t1;
+	int count;
 #if WITH_SDL2
 	SDL_Window *w;
 	SDL_GLContext gc;
@@ -90,6 +97,20 @@ int main(int argc, char **argv) {
 	c.width = 640;
 	c.height = 480;
 	c.data = 0;
+
+	argc--;
+	argv++;
+	while (argc--) {
+		if (!strcmp("-nosync",argv[0])) {
+			vsync = 0;
+		} else if (isdigit(argv[0][0]) && (x = strchr(argv[0],'x'))) {
+			c.width = atoi(argv[0]);
+			c.height = atoi(x + 1);
+		} else {
+			fprintf(stderr,"unknown argument '%s'\n",argv[0]);
+		}
+		argv++;
+	}
 
 	if (SDL_Init(SDL_INIT_VIDEO))
 		die("sdl video init failed");
@@ -113,7 +134,8 @@ int main(int argc, char **argv) {
 #endif
 
 	/* enable vsync */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL,1);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL,vsync);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,vsync);
 
 #if WITH_SDL2
 	if (!(w = SDL_CreateWindow("Test", 0, 0, c.width, c.height,
@@ -131,6 +153,8 @@ int main(int argc, char **argv) {
 	if (scene_init(&c))
 		return -1;
 
+	t0 = time(0);
+	count = 0;
 	for (;;) {
 		handle_events();
 
@@ -142,6 +166,13 @@ int main(int argc, char **argv) {
 #else
 		SDL_GL_SwapBuffers();
 #endif
+		t1 = time(0);
+		count++;
+		if (t0 != t1) {
+			printf("%d fps\n", count);
+			count = 0;
+			t0 = t1;
+		}
 	}
 
 	return 0;
