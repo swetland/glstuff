@@ -29,8 +29,8 @@ unsigned texw, texh;
 const char *vert_src, *frag_src;
 
 GLuint pgm, vshd, fshd, tex0;
-GLuint _vPosition, _vUV;
-GLuint _uMVP, _uSampler;
+GLuint aVertex, aTexCoord;
+GLuint uMVP, uTexture;
 
 mat4 perspective;
 mat4 MVP;
@@ -83,9 +83,9 @@ int scene_init(struct ctxt *c) {
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
-	if (!(vert_src = load_file("test1.vertex.glsl", 0)))
+	if (!(vert_src = load_file("test1.vs", 0)))
 		return -1;
-	if (!(frag_src = load_file("test1.fragment.glsl", 0)))
+	if (!(frag_src = load_file("test1.fs", 0)))
 		return -1;
 
 	mtx_identity(MVP);
@@ -98,10 +98,10 @@ int scene_init(struct ctxt *c) {
 	if (shader_compile(vert_src, frag_src, &pgm, &vshd, &fshd))
 		return -1;
 
-	_vPosition = glGetAttribLocation(pgm, "vPosition");
-	_vUV = glGetAttribLocation(pgm, "vUV");
-	_uMVP = glGetUniformLocation(pgm, "uMVP");
-	_uSampler = glGetUniformLocation(pgm, "uSampler");
+	aVertex = glGetAttribLocation(pgm, "aVertex");
+	aTexCoord = glGetAttribLocation(pgm, "aTexCoord");
+	uMVP = glGetUniformLocation(pgm, "uMVP");
+	uTexture = glGetUniformLocation(pgm, "uTexture");
 
 	if(glGetError() != GL_NO_ERROR) fprintf(stderr,"OOPS!\n");
 
@@ -142,14 +142,14 @@ int scene_draw(struct ctxt *c) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
-	glUniformMatrix4fv(_uMVP, 1, GL_FALSE, (void*) MVP);
-	glUniform1i(_uSampler, 0);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniform1i(uTexture, 0);
 
-	glVertexAttribPointer(_vPosition, 3, GL_FLOAT, GL_FALSE, 5*4, data);
-	glEnableVertexAttribArray(_vPosition);
+	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 5*4, data);
+	glEnableVertexAttribArray(aVertex);
 
-	glVertexAttribPointer(_vUV, 2, GL_FLOAT, GL_FALSE, 5*4, data + 3);
-	glEnableVertexAttribArray(_vUV);
+	glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 5*4, data + 3);
+	glEnableVertexAttribArray(aTexCoord);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
 
