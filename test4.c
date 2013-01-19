@@ -50,6 +50,8 @@ GLfloat texcoords[] = {
 };
 
 int scene_init(struct ctxt *c) {
+	float aspect;
+
 	if (!(texdata = load_png_gray("texture.sdf.png", &texw, &texh, 1)))
 		return -1;
 	if (!(vert_src = load_file("test4.vs", 0)))
@@ -57,8 +59,8 @@ int scene_init(struct ctxt *c) {
 	if (!(frag_src = load_file("test4.fs", 0)))
 		return -1;
 
-	mtx_identity(MVP);
-	mtx_ortho(MVP, -1.333, 1.333, -1, 1, 1, -1);
+ 	aspect = ((float)c->width) / ((float)c->height);
+	mtx_ortho(MVP, -aspect, aspect, -1, 1, 1, -1);
 
 	glViewport(0, 0, c->width, c->height);
 	glClearColor(0, 0, 0, 0);
