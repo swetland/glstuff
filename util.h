@@ -18,6 +18,7 @@
 
 typedef float mat4[4][4];
 typedef float vec4[4];
+typedef float vec3[3];
 
 /* load the identity matrix */
 void mtx_identity(mat4 out);
@@ -27,6 +28,8 @@ void mtx_mul(mat4 out, mat4 left, mat4 right);
 
 /* avoids a copy, but out and left may not be the same */
 void mtx_mul_unsafe(mat4 out, mat4 left, mat4 right);
+
+void mtx_mul_vec4(vec4 out, mat4 left, vec4 right);
 
 /* applies the transform to out */
 void mtx_translate(mat4 out, float x, float y, float z);

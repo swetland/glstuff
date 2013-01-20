@@ -46,6 +46,18 @@ void mtx_mul(mat4 m, mat4 a, mat4 b) {
 	memcpy(m, t, sizeof(mat4));
 }
 
+void mtx_mul_vec4(vec4 o, mat4 m, vec4 v) {
+	float a, b, c, d;
+	a = m[0][0] * v[0] + m[1][0] * v[1] + m[2][0] * v[2] + m[3][0] * v[3];
+	b = m[0][1] * v[0] + m[1][1] * v[1] + m[2][1] * v[2] + m[3][1] * v[3];
+	c = m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2] + m[3][2] * v[3];
+	d = m[0][3] * v[0] + m[1][3] * v[1] + m[2][3] * v[2] + m[3][3] * v[3];
+	o[0] = a;
+	o[1] = b;
+	o[2] = c;
+	o[3] = d;
+}
+
 void mtx_identity(mat4 m) {
 	memset(m, 0, sizeof(mat4));
 	m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
