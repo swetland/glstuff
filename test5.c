@@ -102,23 +102,30 @@ int scene_draw(struct ctxt *c) {
 	mat4 tmp;
 	vec4 light = { 0.0, 0.0, 0.0, 1.0 };
 
-	if (keystate[SDLK_w]) camz += 0.1;
-	if (keystate[SDLK_s]) camz -= 0.1;
-	if (keystate[SDLK_a]) camx -= 0.1;
-	if (keystate[SDLK_d]) camx += 0.1;
-	if (keystate[SDLK_q]) camrz += 1.0;
-	if (keystate[SDLK_e]) camrz -= 1.0;
+	float vz = cosf(camry * M_PI / 180.0);
+	float vx = -sinf(camry * M_PI / 180.0);
+	float vz2 = cosf((camry + 90.0) * M_PI / 180.0);
+	float vx2 = -sinf((camry + 90.0) * M_PI / 180.0);
+
+	if (keystate[SDLK_w]) { camx += vx * 0.1; camz += vz * 0.1; }
+	if (keystate[SDLK_s]) { camx -= vx * 0.1; camz -= vz * 0.1; }
+	if (keystate[SDLK_a]) { camx += vx2 * 0.1; camz += vz2 * 0.1; }
+	if (keystate[SDLK_d]) { camx -= vx2 * 0.1; camz -= vz2 * 0.1; }
+
+	if (keystate[SDLK_q]) camry += 3.0;
+	if (keystate[SDLK_e]) camry -= 3.0;
+
 	if (keystate[SDLK_r]) camrx -= 1.0;
 	if (keystate[SDLK_f]) camrx += 1.0;
+
 	if (keystate[SDLK_x]) { camrx = 0; camrz = 0; }
+
 	if (camrx < -45.0) camrx = -45.0;
 	if (camrx > 45.0) camrx = 45.0;
-	if (camrz < -45.0) camrz = -45.0;
-	if (camrz > 45.0) camrz = 45.0;
 
 	mtx_identity(View);
 	mtx_translate(View, -camx, camy, camz);
-	mtx_z_rotation(tmp, camrz);
+	mtx_y_rotation(tmp, camry);
 	mtx_mul(View, View, tmp);
 	mtx_x_rotation(tmp, camrx);
 	mtx_mul(View, View, tmp);
