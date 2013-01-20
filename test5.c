@@ -32,6 +32,12 @@ GLuint pgm, vshd, fshd, tex0;
 GLuint aVertex, aNormal, aTexCoord;
 GLuint uMV, uMVP, uLight, uTexture;
 
+float camx = 0, camy = 0, camz = -5;
+float camrx = 0, camry = 0, camrz = 0;
+
+extern unsigned char keystate[];
+#include <SDL/SDL_keysym.h>
+
 mat4 Projection;
 
 float a = 0.0;
@@ -93,12 +99,29 @@ int scene_draw(struct ctxt *c) {
 	mat4 MV;
 	mat4 Model;
 	mat4 View;
+	mat4 tmp;
 	vec4 light = { 0.0, 0.0, 0.0, 1.0 };
 
+	if (keystate[SDLK_w]) camz += 0.1;
+	if (keystate[SDLK_s]) camz -= 0.1;
+	if (keystate[SDLK_a]) camx -= 0.1;
+	if (keystate[SDLK_d]) camx += 0.1;
+	if (keystate[SDLK_q]) camrz += 1.0;
+	if (keystate[SDLK_e]) camrz -= 1.0;
+	if (keystate[SDLK_r]) camrx -= 1.0;
+	if (keystate[SDLK_f]) camrx += 1.0;
+	if (keystate[SDLK_x]) { camrx = 0; camrz = 0; }
+	if (camrx < -45.0) camrx = -45.0;
+	if (camrx > 45.0) camrx = 45.0;
+	if (camrz < -45.0) camrz = -45.0;
+	if (camrz > 45.0) camrz = 45.0;
+
 	mtx_identity(View);
-	mtx_translate(View, 0, 0, -7.0);
-	//mtx_rotate_y(View, a);
-	mtx_rotate_x(View, -15.0);
+	mtx_translate(View, -camx, camy, camz);
+	mtx_z_rotation(tmp, camrz);
+	mtx_mul(View, View, tmp);
+	mtx_x_rotation(tmp, camrx);
+	mtx_mul(View, View, tmp);
 
 	a += 1.0;
 	if (a > 360.0) a = 0.0;
