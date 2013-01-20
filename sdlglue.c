@@ -82,16 +82,28 @@ int shader_compile(const char *vshader, const char *fshader,
 	return 0;
 }
 
+void quit(void) {
+	SDL_Quit();
+	exit(0);
+}
+
+unsigned char keystate[SDLK_LAST + 1] = { 0, };
+
 void handle_events(void) {
 	SDL_Event ev;
 
 	while (SDL_PollEvent(&ev)) {
-		switch (ev./* Copyright 2013, Brian Swetland <swetland@frotz.net> */
-type) {
+		switch (ev.type) {
 		case SDL_KEYDOWN:
+			keystate[ev.key.keysym.sym] = 1;
+			if (ev.key.keysym.sym == SDLK_ESCAPE)
+				quit();
+			break;
+		case SDL_KEYUP:
+			keystate[ev.key.keysym.sym] = 0;
+			break;
 		case SDL_QUIT:
-			SDL_Quit();
-			exit(0);
+			quit();
 		}
 	}
 }
