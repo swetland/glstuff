@@ -5,12 +5,12 @@ SDLCFG := sdl-config
 SDLFLAGS := $(shell $(SDLCFG) --cflags)
 SDLLIBS := $(shell $(SDLCFG) --libs)
 
-CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall
+CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g
 LIBS := $(SDLLIBS) -lGL -lm -lpng
 
 COMMONOBJS := util.o sdlglue.o loadpng.o loadfile.o loadobj.o
 
-all: test1 test2 test3 test4 mksdf
+all: test1 test2 test3 test4 test5 mksdf
 
 mksdf: mksdf.c loadpng.c savepng.c
 	gcc -g -Wall -o mksdf mksdf.c loadpng.c savepng.c -lm -lpng
@@ -31,5 +31,9 @@ TEST4OBJS := test4.o $(COMMONOBJS)
 test4: $(TEST4OBJS)
 	$(CC) -o test4 $(TEST4OBJS) $(LIBS)
 
+TEST5OBJS := test5.o $(COMMONOBJS)
+test5: $(TEST5OBJS)
+	$(CC) -o test5 $(TEST5OBJS) $(LIBS)
+
 clean::
-	rm -f test1 test2 test3 test4 mksdf *.o
+	rm -f test1 test2 test3 test4 test5 mksdf *.o
