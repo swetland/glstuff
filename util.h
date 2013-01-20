@@ -37,6 +37,11 @@ void mtx_rotate_x(mat4 out, float angle);
 void mtx_rotate_y(mat4 out, float angle);
 void mtx_rotate_z(mat4 out, float angle);
 
+/* initializes matrix out to the transform */
+void mtx_x_rotation(mat4 out, float angle);
+void mtx_y_rotation(mat4 out, float angle);
+void mtx_z_rotation(mat4 out, float angle);
+
 /* GLU-style perspective matrix helper functions */
 void mtx_ortho(mat4 out,
 	float left, float right,

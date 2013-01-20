@@ -70,8 +70,7 @@ void mtx_translate(mat4 m, float x, float y, float z) {
 	m[3][3] += (m[0][3] * x + m[1][3] * y + m[2][3] * z);
 }
 
-void mtx_rotate_x(mat4 m, float angle) {
-	mat4 r;
+void mtx_x_rotation(mat4 r, float angle) {
 	float sa,ca;
 	angle = angle * M_PI / 180.0;
 	sa = sinf(angle);
@@ -83,11 +82,9 @@ void mtx_rotate_x(mat4 m, float angle) {
 	r[2][1] = sa;
 	r[2][2] = ca;
 	r[3][3] = 1;
-	mtx_mul(m, r, m);
 }
 
-void mtx_rotate_y(mat4 m, float angle) {
-	mat4 r;
+void mtx_y_rotation(mat4 r, float angle) {
 	float sa,ca;
 	angle = angle * M_PI / 180.0;
 	sa = sinf(angle);
@@ -99,11 +96,9 @@ void mtx_rotate_y(mat4 m, float angle) {
 	r[2][0] = -sa;
 	r[2][2] = ca;
 	r[3][3] = 1;
-	mtx_mul(m, r, m);
 }
 
-void mtx_rotate_z(mat4 m, float angle) {
-	mat4 r;
+void mtx_z_rotation(mat4 r, float angle) {
 	float sa,ca;
 	angle = angle * M_PI / 180.0;
 	sa = sinf(angle);
@@ -115,6 +110,23 @@ void mtx_rotate_z(mat4 m, float angle) {
 	r[1][1] = ca;
 	r[2][2] = 1;
 	r[3][3] = 1;
+}
+
+void mtx_rotate_x(mat4 m, float angle) {
+	mat4 r;
+	mtx_x_rotation(r, angle);
+	mtx_mul(m, r, m);
+}
+
+void mtx_rotate_y(mat4 m, float angle) {
+	mat4 r;
+	mtx_y_rotation(r, angle);
+	mtx_mul(m, r, m);
+}
+
+void mtx_rotate_z(mat4 m, float angle) {
+	mat4 r;
+	mtx_z_rotation(r, angle);
 	mtx_mul(m, r, m);
 }
 
