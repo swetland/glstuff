@@ -100,7 +100,6 @@ int scene_draw(struct ctxt *c) {
 	mat4 MV;
 	mat4 Model;
 	mat4 View;
-	mat4 tmp;
 	vec4 light(0.0,0.0,0.0,1.0);
 
 	float vz = cosf(D2R(camry));
@@ -124,11 +123,8 @@ int scene_draw(struct ctxt *c) {
 	if (camrx < -45.0) camrx = -45.0;
 	if (camrx > 45.0) camrx = 45.0;
 
-	View.identity();
-	View.translate(-camx, camy, camz);
-	View.rotateY(D2R(camry));
-	View.rotateX(D2R(camrx));
-
+	View.identity().translate(-camx, camy, camz)
+		.rotateY(D2R(camry)).rotateX(D2R(camrx));
 	a += 1.0;
 	if (a > 360.0) a = 0.0;
 
@@ -147,34 +143,30 @@ int scene_draw(struct ctxt *c) {
 	glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 8*4, m->vdata + 6);
 	glEnableVertexAttribArray(aTexCoord);
 
-	Model.identity();
-	Model.translate(20, 40, 30);
+	Model.identity().translate(20, 40, 30);
 	light = Model * light;
 	light = View * light;
 	glUniform4fv(uLight, 1, light);
 
 	Model.identity();
-	MV = Model * View;
-	MVP = MV * Projection;
+	MV.mul(Model,View);
+	MVP.mul(MV,Projection);
 
 	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
 	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
-	Model.identity();
-	Model.translate(-3, 0, 0);
-	MV = Model * View;
-	MVP = MV * Projection;
+	Model.identity().translate(-3, 0, 0);
+	MV.mul(Model,View);
+	MVP.mul(MV,Projection);
 
 	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
 	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
-	Model.identity();
-	Model.translate(3, 0, 0);
-	Model.rotateY(D2R(a));
-	MV = Model * View;
-	MVP = MV * Projection;
+	Model.identity().translate(3, 0, 0).rotateY(D2R(a));
+	MV.mul(Model,View);
+	MVP.mul(MV,Projection);
 
 	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
 	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);

@@ -155,6 +155,11 @@ public:
 	};
 
 	friend vec4 operator*(const mat4& a, const vec4& b);
+
+	mat4& mul(mat4& left, mat4& right) {
+		__mat4_mul_mat4(m, left.m, right.m);
+		return *this;
+	}
 };
 
 inline vec4 operator*(const mat4& a, const vec4& b) {

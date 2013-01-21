@@ -5,7 +5,7 @@ SDLCFG := sdl-config
 SDLFLAGS := $(shell $(SDLCFG) --cflags)
 SDLLIBS := $(shell $(SDLCFG) --libs)
 
-CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g
+CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
 CXXFLAGS := $(CFLAGS)
 LIBS := $(SDLLIBS) -lGL -lm -lpng
 
