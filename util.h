@@ -26,7 +26,8 @@ void mtx_identity(mat4 out);
 /* out = left * right */
 void mtx_mul(mat4 out, mat4 left, mat4 right);
 
-/* avoids a copy, but out and left may not be the same */
+/* avoids a copy, but out and right may not be the same */
+/* mtx_mul_unsafe(a, a, b) = OK, mtx_mul_unsafe(a, b, a) = FAIL */
 void mtx_mul_unsafe(mat4 out, mat4 left, mat4 right);
 
 void mtx_mul_vec4(vec4 out, mat4 left, vec4 right);
