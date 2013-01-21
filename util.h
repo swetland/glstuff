@@ -38,6 +38,7 @@ void mtx_rotate_y(mat4 out, float angle);
 void mtx_rotate_z(mat4 out, float angle);
 
 /* initializes matrix out to the transform */
+void mtx_translation(mat4 out, float x, float y, float z);
 void mtx_x_rotation(mat4 out, float angle);
 void mtx_y_rotation(mat4 out, float angle);
 void mtx_z_rotation(mat4 out, float angle);

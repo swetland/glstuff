@@ -127,9 +127,9 @@ int scene_draw(struct ctxt *c) {
 	mat4 camera;
 
 	mtx_identity(camera);
-	mtx_translate(camera, 0, 0, -3.0);
 	mtx_rotate_y(camera, a);
 	mtx_rotate_x(camera, 25.0);
+	mtx_translate(camera, 0, 0, -3.0);
 
 	mtx_mul_unsafe(MVP, camera, perspective);
 

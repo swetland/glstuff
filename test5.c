@@ -124,7 +124,9 @@ int scene_draw(struct ctxt *c) {
 	if (camrx > 45.0) camrx = 45.0;
 
 	mtx_identity(View);
-	mtx_translate(View, -camx, camy, camz);
+	mtx_translation(tmp, -camx, camy, camz);
+	mtx_mul(View, View, tmp);
+	//mtx_translate(View, -camx, camy, camz);
 	mtx_y_rotation(tmp, camry);
 	mtx_mul(View, View, tmp);
 	mtx_x_rotation(tmp, camrx);
@@ -172,8 +174,13 @@ int scene_draw(struct ctxt *c) {
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
 	mtx_identity(Model);
-	mtx_translate(Model, 3, 0, 0);
-	mtx_rotate_y(Model, a);
+	mtx_y_rotation(tmp, a);
+	mtx_mul_unsafe(Model, Model, tmp);
+	mtx_translation(tmp, 3, 0, 0);
+	mtx_mul_unsafe(Model, Model, tmp);
+	//mtx_translate(Model, 3, 0, 0);
+	//mtx_mul(Model, tmp, Model);
+	//mtx_rotate_y(Model, a);
 	mtx_mul_unsafe(MV, Model, View);
 	mtx_mul_unsafe(MVP, MV, Projection);
 
