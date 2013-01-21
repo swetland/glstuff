@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include <math.h>
+#include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "util.h"
 
@@ -157,4 +158,12 @@ void mtx_ortho(mat4 m, float l, float r, float b, float t, float n, float f) {
 	m[3][2] = -((f + n) / (f - n));
 	m[3][3] = 1.0;
 }
+
+void mtx_dump(const float m[16], const char *name) {
+	fprintf(stderr,"| %9.5f %9.5f %9.5f %9.5f | %s\n",m[0],m[4],m[8],m[12], name ? name : "");
+	fprintf(stderr,"| %9.5f %9.5f %9.5f %9.5f |\n",m[1],m[5],m[9],m[13]);
+	fprintf(stderr,"| %9.5f %9.5f %9.5f %9.5f |\n",m[2],m[6],m[10],m[14]);
+	fprintf(stderr,"| %9.5f %9.5f %9.5f %9.5f |\n",m[3],m[7],m[11],m[15]);
+}
+
 

@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "util.h"
+#include "matrix.h"
 #include "glue.h"
 
 #include <math.h>
@@ -49,9 +50,9 @@ int scene_init(struct ctxt *c) {
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
-	if (!(vert_src = load_file("test5.vs", 0)))
+	if (!(vert_src = (const char*) load_file("test5.vs", 0)))
 		return -1;
-	if (!(frag_src = load_file("test5.fs", 0)))
+	if (!(frag_src = (const char*) load_file("test5.fs", 0)))
 		return -1;
 
 	if (!(m = load_wavefront_obj("cube.obj")))
@@ -89,7 +90,7 @@ int scene_init(struct ctxt *c) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	mtx_perspective(Projection, 60.0, aspect, 1.0, 100.0);
+	Projection.setPerspective(D2R(60.0), aspect, 1.0, 100.0);
 
 	return 0;
 }
@@ -100,12 +101,12 @@ int scene_draw(struct ctxt *c) {
 	mat4 Model;
 	mat4 View;
 	mat4 tmp;
-	vec4 light = { 0.0, 0.0, 0.0, 1.0 };
+	vec4 light(0.0,0.0,0.0,1.0);
 
-	float vz = cosf(camry * M_PI / 180.0);
-	float vx = -sinf(camry * M_PI / 180.0);
-	float vz2 = cosf((camry + 90.0) * M_PI / 180.0);
-	float vx2 = -sinf((camry + 90.0) * M_PI / 180.0);
+	float vz = cosf(D2R(camry));
+	float vx = -sinf(D2R(camry));
+	float vz2 = cosf(D2R(camry + 90.0));
+	float vx2 = -sinf(D2R(camry + 90.0));
 
 	if (keystate[SDLK_w]) { camx += vx * 0.1; camz += vz * 0.1; }
 	if (keystate[SDLK_s]) { camx -= vx * 0.1; camz -= vz * 0.1; }
@@ -123,14 +124,10 @@ int scene_draw(struct ctxt *c) {
 	if (camrx < -45.0) camrx = -45.0;
 	if (camrx > 45.0) camrx = 45.0;
 
-	mtx_identity(View);
-	mtx_translation(tmp, -camx, camy, camz);
-	mtx_mul(View, View, tmp);
-	//mtx_translate(View, -camx, camy, camz);
-	mtx_y_rotation(tmp, camry);
-	mtx_mul(View, View, tmp);
-	mtx_x_rotation(tmp, camrx);
-	mtx_mul(View, View, tmp);
+	View.identity();
+	View.translate(-camx, camy, camz);
+	View.rotateY(D2R(camry));
+	View.rotateX(D2R(camrx));
 
 	a += 1.0;
 	if (a > 360.0) a = 0.0;
@@ -150,42 +147,37 @@ int scene_draw(struct ctxt *c) {
 	glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 8*4, m->vdata + 6);
 	glEnableVertexAttribArray(aTexCoord);
 
-	mtx_identity(Model);
-	mtx_translate(Model, 20, 40, 30);
-	mtx_mul_vec4(light, Model, light);
-	mtx_mul_vec4(light, View, light);
+	Model.identity();
+	Model.translate(20, 40, 30);
+	light = Model * light;
+	light = View * light;
 	glUniform4fv(uLight, 1, light);
 
-	mtx_identity(Model);
-	mtx_mul_unsafe(MV, Model, View);
-	mtx_mul_unsafe(MVP, MV, Projection);
+	Model.identity();
+	MV = Model * View;
+	MVP = MV * Projection;
 
-	glUniformMatrix4fv(uMV, 1, GL_FALSE, (void*) MV);
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
-	mtx_identity(Model);
-	mtx_translate(Model, -3, 0, 0);
-	mtx_mul_unsafe(MV, Model, View);
-	mtx_mul_unsafe(MVP, MV, Projection);
+	Model.identity();
+	Model.translate(-3, 0, 0);
+	MV = Model * View;
+	MVP = MV * Projection;
 
-	glUniformMatrix4fv(uMV, 1, GL_FALSE, (void*) MV);
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
-	mtx_identity(Model);
-	mtx_y_rotation(tmp, a);
-	mtx_mul_unsafe(Model, Model, tmp);
-	mtx_translation(tmp, 3, 0, 0);
-	mtx_mul_unsafe(Model, Model, tmp);
-	//mtx_translate(Model, 3, 0, 0);
-	//mtx_mul(Model, tmp, Model);
-	//mtx_rotate_y(Model, a);
-	mtx_mul_unsafe(MV, Model, View);
-	mtx_mul_unsafe(MVP, MV, Projection);
+	Model.identity();
+	Model.translate(3, 0, 0);
+	Model.rotateY(D2R(a));
+	MV = Model * View;
+	MVP = MV * Projection;
 
-	glUniformMatrix4fv(uMV, 1, GL_FALSE, (void*) MV);
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
 	return 0;

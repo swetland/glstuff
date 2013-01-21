@@ -6,6 +6,7 @@ SDLFLAGS := $(shell $(SDLCFG) --cflags)
 SDLLIBS := $(shell $(SDLCFG) --libs)
 
 CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g
+CXXFLAGS := $(CFLAGS)
 LIBS := $(SDLLIBS) -lGL -lm -lpng
 
 COMMONOBJS := util.o sdlglue.o loadpng.o loadfile.o loadobj.o
@@ -31,7 +32,7 @@ TEST4OBJS := test4.o $(COMMONOBJS)
 test4: $(TEST4OBJS)
 	$(CC) -o test4 $(TEST4OBJS) $(LIBS)
 
-TEST5OBJS := test5.o $(COMMONOBJS)
+TEST5OBJS := test5.o $(COMMONOBJS) matrix.o
 test5: $(TEST5OBJS)
 	$(CC) -o test5 $(TEST5OBJS) $(LIBS)
 

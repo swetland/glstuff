@@ -20,6 +20,10 @@
 
 #include <SDL_opengl.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ctxt {
 	unsigned width;
 	unsigned height;
@@ -32,4 +36,7 @@ int scene_draw(struct ctxt *c);
 int shader_compile(const char *vshader, const char *fshader,
 		GLuint *pgm, GLuint *vshd, GLuint *fshd);
 
+#ifdef __cplusplus
+}
+#endif
 #endif 

@@ -16,6 +16,9 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#else
 typedef float mat4[4][4];
 typedef float vec4[4];
 typedef float vec3[3];
@@ -57,6 +60,9 @@ void mtx_frustum(mat4 out,
 void mtx_perspective(mat4 out,
 	float fov_degrees, float aspect_ratio,
 	float znear, float zfar);
+#endif
+
+void mtx_dump(const float m[16], const char *name);
 
 /* file io helpers */
 void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int texture);
@@ -76,5 +82,9 @@ struct model {
 };
 
 struct model *load_wavefront_obj(const char *fn);
+
+#ifdef __cplusplus
+}
+#endif
 #endif
 
