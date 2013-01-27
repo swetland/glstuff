@@ -62,7 +62,6 @@ void adata_init(struct acell *data, int w, int h) {
 	memset(p, 0, sizeof(struct acell) * w * h * 6);
 	y = 1;
 	for (y = h; y > 0; y--) {
-			fprintf(stderr,"%d\n",h-y);
 		for (x = 0; x < w; x++) {
 			p->x = x+0; p->y = y+0;
 			p->u = 0;   p->v = 0;   p->i = x; p->j = h-y; p++;
