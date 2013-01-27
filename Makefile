@@ -11,7 +11,7 @@ LIBS := $(SDLLIBS) -lGL -lm -lpng
 
 COMMONOBJS := util.o sdlglue.o loadpng.o loadfile.o loadobj.o
 
-all: test1 test2 test3 test4 test5 mksdf
+all: test1 test2 test3 test4 test5 mksdf test2d
 
 mksdf: mksdf.c loadpng.c savepng.c
 	gcc -g -Wall -o mksdf mksdf.c loadpng.c savepng.c -lm -lpng
@@ -23,6 +23,10 @@ test1: $(TEST1OBJS)
 TEST2OBJS := test2.o $(COMMONOBJS)
 test2: $(TEST2OBJS)
 	$(CC) -o test2 $(TEST2OBJS) $(LIBS)
+
+TEST2DOBJS := test2d.o $(COMMONOBJS) matrix.o
+test2d: $(TEST2DOBJS)
+	$(CC) -o test2d $(TEST2DOBJS) $(LIBS)
 
 TEST3OBJS := test3.o $(COMMONOBJS)
 test3: $(TEST3OBJS)
@@ -37,4 +41,4 @@ test5: $(TEST5OBJS)
 	$(CC) -o test5 $(TEST5OBJS) $(LIBS)
 
 clean::
-	rm -f test1 test2 test3 test4 test5 mksdf *.o
+	rm -f test1 test2 test3 test4 test5 mksdf test2d *.o
