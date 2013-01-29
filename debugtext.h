@@ -16,7 +16,7 @@
 #ifndef _DEBUG_TEXT_H_
 #define _DEBUG_TEXT_H_
 
-#include "Program.h"
+#include "program.h"
 
 struct DebugTextCell;
 

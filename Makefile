@@ -9,7 +9,7 @@ CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
 CXXFLAGS := $(CFLAGS)
 LIBS := $(SDLLIBS) -lGL -lm -lpng
 
-COMMONOBJS := sdlglue.o loadpng.o loadfile.o loadobj.o program.o matrix.o
+COMMONOBJS := sdlglue.o loadpng.o loadfile.o loadobj.o program.o matrix.o debugtext.o
 
 all:: everything
 

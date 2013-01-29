@@ -24,7 +24,7 @@
 #include "matrix.h"
 #include "glue.h"
 #include "program.h"
-#include "DebugText.h"
+#include "debugtext.h"
 
 #include <math.h>
 

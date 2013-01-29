@@ -25,7 +25,7 @@
 #include "glue.h"
 #include "matrix.h"
 
-#include "DebugText.h"
+#include "debugtext.h"
 
 struct DebugTextCell {
 	unsigned char x;
