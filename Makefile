@@ -6,26 +6,37 @@ SDLFLAGS := $(shell $(SDLCFG) --cflags)
 SDLLIBS := $(shell $(SDLCFG) --libs)
 
 CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
+CFLAGS += -ffunction-sections -fdata-sections
+LFLAGS := -Wl,-gc-sections -static-libstdc++
 CXXFLAGS := $(CFLAGS)
-LIBS := $(SDLLIBS) -lGL -lm -lpng
-
-COMMONOBJS := sdlglue.o loadpng.o loadfile.o loadobj.o program.o matrix.o debugtext.o
+LIBS := stuff.a $(SDLLIBS) -lGL -lm -lpng
 
 all:: everything
+
+LIBOBJS := loadfile.o
+LIBOBJS += loadpng.o savepng.o
+LIBOBJS += loadobj.o
+LIBOBJS += matrix.o program.o
+LIBOBJS += debugtext.o
+LIBOBJS += sdlglue.o
+
+stuff.a: $(LIBOBJS)
+	rm -f stuff.a
+	ar cr stuff.a $(LIBOBJS)
 
 APPS := test1 test2 test3 test4 test5 test2d 
 
 define build-test
-$1: $1.o $(COMMONOBJS)
-	$(CC) -o $1 $1.o $(COMMONOBJS) $(LIBS)
+$1: $1.o stuff.a
+	$(CXX) $(LFLAGS) -o $1 $1.o $(COMMONOBJS) $(LIBS)
 endef
 
 $(foreach t,$(APPS),$(eval $(call build-test,$t)))
 
 mksdf: mksdf.o loadpng.o savepng.o
-	$(CC) -o mksdf mksdf.o loadpng.o savepng.o $(LIBS)
+	$(CXX) -o mksdf mksdf.o loadpng.o savepng.o $(LIBS)
 
 everything: $(APPS) mksdf
 
 clean::
-	rm -f $(APPS) mksdf *.o
+	rm -f $(APPS) mksdf *.o stuff.a
