@@ -15,8 +15,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "util.h"
 #include "matrix.h"
@@ -37,7 +39,7 @@ float camx = 0, camy = 0, camz = -5;
 float camrx = 0, camry = 0, camrz = 0;
 
 extern unsigned char keystate[];
-#include <SDL/SDL_keysym.h>
+#include <SDL_keysym.h>
 
 mat4 Projection;
 

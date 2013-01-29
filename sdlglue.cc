@@ -17,17 +17,51 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include <time.h>
 
 #include "util.h"
+
+#ifdef _WIN32
+#define GLUE_DEFINE_EXTENSIONS
+#endif
+
 #include "glue.h"
 
 void die(const char *fmt, ...) {
 	fprintf(stderr,"ERROR: %s\n", fmt);
 	exit(-1);
 }
+
+#ifdef _WIN32
+#if !WITH_SDL2
+int SDL_GL_ExtensionSupported(const char *name) {
+	if (strstr((char*)glGetString(GL_EXTENSIONS), name))
+		return 1;
+	else
+		return 0;
+}
+#endif
+
+void glsl_init(void) {
+	int n;
+	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_shading_language_100") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_vertex_shader") ||
+		!SDL_GL_ExtensionSupported("GL_ARB_fragment_shader"))
+		die("missing glsl extensions");
+	for (n = 0; n < sizeof(fntb)/sizeof(fntb[0]); n++) {
+		*fntb[n].func = SDL_GL_GetProcAddress(fntb[n].name);
+		if (!(*fntb[n].func))
+			die("cannot find func '%s'", fntb[n].name);
+	}
+}
+#else
+void glsl_init(void) {}
+#endif
 
 int check_compile_error(GLuint obj, const char *fn) {
 	GLint r, len;
@@ -174,6 +208,8 @@ int main(int argc, char **argv) {
 		SDL_HWSURFACE | SDL_GL_DOUBLEBUFFER | SDL_OPENGL) == NULL) 
 		die("sdl cannot set mode");
 #endif	
+
+	glsl_init();
 
 	if (scene_init(&c))
 		return -1;
