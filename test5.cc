@@ -23,17 +23,20 @@
 #include "util.h"
 #include "matrix.h"
 #include "glue.h"
+#include "program.h"
+#include "DebugText.h"
 
 #include <math.h>
 
 void *texdata;
 unsigned texw, texh;
 
-const char *vert_src, *frag_src;
-
-GLuint pgm, vshd, fshd, tex0;
+GLuint tex0;
 GLuint aVertex, aNormal, aTexCoord;
 GLuint uMV, uMVP, uLight, uTexture;
+
+Program pgm;
+DebugText debugtext;
 
 float camx = 0, camy = 0, camz = -5;
 float camrx = 0, camry = 0, camrz = 0;
@@ -52,10 +55,6 @@ int scene_init(struct ctxt *c) {
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
-	if (!(vert_src = (const char*) load_file("test5.vs", 0)))
-		return -1;
-	if (!(frag_src = (const char*) load_file("test5.fs", 0)))
-		return -1;
 
 	if (!(m = load_wavefront_obj("cube.obj")))
 		return -1;
@@ -64,25 +63,16 @@ int scene_init(struct ctxt *c) {
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
-	if (shader_compile(vert_src, frag_src, &pgm, &vshd, &fshd))
+	if (pgm.compile("test5.vs","test5.fs"))
 		return -1;
 
-	aVertex = glGetAttribLocation(pgm, "aVertex");
-	aNormal = glGetAttribLocation(pgm, "aNormal");
-	aTexCoord = glGetAttribLocation(pgm, "aTexCoord");
-	uMVP = glGetUniformLocation(pgm, "uMVP");
-	uMV = glGetUniformLocation(pgm, "uMV");
-	uLight = glGetUniformLocation(pgm, "uLight");
-	uTexture = glGetUniformLocation(pgm, "uTexture");
-
-	if(glGetError() != GL_NO_ERROR) fprintf(stderr,"OOPS!\n");
-
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	aVertex = pgm.getAttribID("aVertex");
+	aNormal = pgm.getAttribID("aNormal");
+	aTexCoord = pgm.getAttribID("aTexCoord");
+	uMVP = pgm.getUniformID("uMVP");
+	uMV = pgm.getUniformID("uMV");
+	uLight = pgm.getUniformID("uLight");
+	uTexture = pgm.getUniformID("uTexture");
 
 	glGenTextures(1, &tex0);
 	
@@ -94,6 +84,7 @@ int scene_init(struct ctxt *c) {
 
 	Projection.setPerspective(D2R(60.0), aspect, 1.0, 100.0);
 
+	debugtext.init(32,32);
 	return 0;
 }
 
@@ -131,12 +122,20 @@ int scene_draw(struct ctxt *c) {
 	if (a > 360.0) a = 0.0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(pgm);
+	pgm.use();
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glFrontFace(GL_CCW);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
 	glUniform1i(uTexture, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 8*4, m->vdata);
 	glEnableVertexAttribArray(aVertex);
@@ -173,6 +172,11 @@ int scene_draw(struct ctxt *c) {
 	glUniformMatrix4fv(uMV, 1, GL_FALSE, MV);
 	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
+
+	debugtext.clear();
+	debugtext.printf("Hello, Test #5\n");
+	debugtext.printf("Cam @ %6.3f %6.3f\n", camx, camz);
+	debugtext.render();
 
 	return 0;
 }
