@@ -87,7 +87,7 @@ void *_load_png(const char *fn, unsigned *_width, unsigned *_height, int ch, int
 		png_error(png, "unsupported channel count");
 	}
 
-	if (!(data = malloc(w * h * ch)))
+	if (!(data = (png_byte*) malloc(w * h * ch)))
 		png_error(png, "cannot allocate image buffer");
 
 	if (inverty)

@@ -16,6 +16,8 @@
 #ifndef _MATRIX_MATH_H_
 #define _MATRIX_MATH_H_
 
+#include <string.h>
+
 #define D2R(d) (((d) * M_PI) / 180.0)
 
 /* low level operations */

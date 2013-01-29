@@ -68,7 +68,7 @@ static void *resize(void *array, unsigned *max, unsigned esz) {
 static int obj_add_v(struct obj *o, float x, float y, float z) {
 	unsigned n = o->num_v;
 	if (n == o->max_v)
-		if(!(o->v = resize(o->v, &o->max_v, sizeof(struct v3))))
+		if(!(o->v = (v3*) resize(o->v, &o->max_v, sizeof(struct v3))))
 			return -1;
 	o->v[n].x = x;
 	o->v[n].y = y;
@@ -80,7 +80,7 @@ static int obj_add_v(struct obj *o, float x, float y, float z) {
 static int obj_add_vn(struct obj *o, float x, float y, float z) {
 	unsigned n = o->num_vn;
 	if (n == o->max_vn)
-		if(!(o->vn = resize(o->vn, &o->max_vn, sizeof(struct v3))))
+		if(!(o->vn = (v3*) resize(o->vn, &o->max_vn, sizeof(struct v3))))
 			return -1;
 	o->vn[n].x = x;
 	o->vn[n].y = y;
@@ -92,7 +92,7 @@ static int obj_add_vn(struct obj *o, float x, float y, float z) {
 static int obj_add_vt(struct obj *o, float u, float v) {
 	unsigned n = o->num_vt;
 	if (n == o->max_vt)
-		if(!(o->vt = resize(o->vt, &o->max_vt, sizeof(struct v3))))
+		if(!(o->vt = (v2*) resize(o->vt, &o->max_vt, sizeof(struct v3))))
 			return -1;
 	o->vt[n].u = u;
 	o->vt[n].v = v;
@@ -103,7 +103,7 @@ static int obj_add_vt(struct obj *o, float u, float v) {
 static int obj_add_f(struct obj *o, int v, int vt, int vn) {
 	unsigned n = o->num_f;
 	if (n == o->max_f)
-		if(!(o->f = resize(o->f, &o->max_f, sizeof(struct v3))))
+		if(!(o->f = (i3*) resize(o->f, &o->max_f, sizeof(struct v3))))
 			return -1;
 
 	/* XXX: range check */
@@ -121,14 +121,14 @@ static int obj_add_f(struct obj *o, int v, int vt, int vn) {
 struct obj *load_obj(const char *fn) {
 	char buf[128];
 	FILE *fp;
-	struct obj *o;
+	struct obj *o = 0;
 	float x, y, z;
 	int a, b, c;
 
 	if (!(fp = fopen(fn, "r")))
 		goto exit;
 
-	o = malloc(sizeof(struct obj));
+	o = (obj*) malloc(sizeof(struct obj));
 	if (!o)
 		goto close_and_exit;
 	memset(o, 0, sizeof(struct obj));
@@ -167,15 +167,15 @@ static struct model *obj_to_model(struct obj *o) {
 	int i, j, n;
 	struct model *m;
 
-	if(!(m = malloc(sizeof(struct model))))
+	if(!(m = (model*) malloc(sizeof(struct model))))
 		return 0;
 	memset(m, 0, sizeof(struct model));
 
-	if (!(m->vdata = malloc(sizeof(float) * 8 * o->num_f))) {
+	if (!(m->vdata = (float*) malloc(sizeof(float) * 8 * o->num_f))) {
 		free(m);
 		return 0;
 	}
-	if (!(m->idx = malloc(sizeof(short) * o->num_f))) {
+	if (!(m->idx = (unsigned short *) malloc(sizeof(short) * o->num_f))) {
 		free(m->vdata);
 		free(m);
 		return 0;

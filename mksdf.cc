@@ -72,7 +72,6 @@ void generate(unsigned char *map, int mw, int mh, int d) {
 int main(int argc, char **argv) {
 	unsigned char *map;
 	unsigned mw, mh;
-	int x, y;
 
 	if (argc != 4) {
 		fprintf(stderr,"usage: mksdf <pngfile> <size> <outfile>\n");
@@ -81,12 +80,12 @@ int main(int argc, char **argv) {
 
 	mw = mh = atoi(argv[2]);
 
-	if (!(map = malloc(mw * mh))) {
+	if (!(map = (unsigned char*) malloc(mw * mh))) {
 		fprintf(stderr,"out of memory\n");
 		return -1;
 	}
 
-	tex = load_png_gray(argv[1], &tw, &th, 0);
+	tex = (unsigned char*) load_png_gray(argv[1], &tw, &th, 0);
 	if (!tex) {
 		fprintf(stderr,"cannot load source image '%s'\n", argv[1]);
 		return -1;

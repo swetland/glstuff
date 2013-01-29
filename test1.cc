@@ -19,26 +19,20 @@
 
 #include "util.h"
 #include "glue.h"
-
-#include <sys/time.h>
-#include <sys/stat.h>
+#include "matrix.h"
+#include "program.h"
 
 void *texdata;
 unsigned texw, texh;
 
-char *vert_src, *frag_src;
-
-GLuint pgm = -1, vshd = -1, fshd = -1, tex0;
+GLuint tex0;
 GLuint aVertex, aTexCoord;
 GLuint uMVP, uTexture;
  
 mat4 MVP;
+Program pgm;
 
 GLfloat verts[] = {
-	-1, -1, 0,
-	-1, 1, 0,
-	1, -1, 0,
-	1, 1, 0,
 	-0.5f, -0.5f, 0.0f,
 	-0.5f, 0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f,
@@ -52,93 +46,47 @@ GLfloat texcoords[] = {
 	1.0, 1.0,
 };
 
-time_t vstime = 0, fstime = 0;
-
-void update_shaders(void) {
-	struct stat vsstat, fsstat;
-	GLuint newpgm, newvs, newfs;
-
-	stat("test4.vs", &vsstat);
-	stat("test4.fs", &fsstat);
-
-	if ((vsstat.st_mtime == vstime) && (fsstat.st_mtime == fstime))
-		return;
-
-	vstime = vsstat.st_mtime;
-	fstime = fsstat.st_mtime;
-
-	if (!(vert_src = load_file("test4.vs", 0)))
-		goto exit;
-	if (!(frag_src = load_file("test4.fs", 0)))
-		goto free_vsrc_and_exit;
-
-	if (shader_compile(vert_src, frag_src, &newpgm, &newvs, &newfs))
-		goto free_both_and_exit;
-
-	glDeleteShader(vshd);
-	glDeleteShader(fshd);
-	glDeleteProgram(pgm);
-
-	pgm = newpgm;
-	vshd = newvs;
-	fshd = newfs;
-
-	aVertex = glGetAttribLocation(pgm, "aVertex");
-	aTexCoord = glGetAttribLocation(pgm, "aTexCoord");
-	uMVP = glGetUniformLocation(pgm, "uMVP");
-	uTexture = glGetUniformLocation(pgm, "uTexture");
-
-	free(frag_src);
-	free(vert_src);
-
-	fprintf(stderr,"shaders updated\n");
-	return;
-
-free_both_and_exit:
-	free(frag_src);
-free_vsrc_and_exit:
-	free(vert_src);
-exit:
-	fprintf(stderr,"failed to update shaders\n");
-	return;
-}
-
 int scene_init(struct ctxt *c) {
-	float aspect;
-
-	if (!(texdata = load_png_gray("texture.sdf.png", &texw, &texh, 1)))
+	if (!(texdata = load_png_rgba("texture1.png", &texw, &texh, 1))) 
 		return -1;
 
- 	aspect = ((float)c->width) / ((float)c->height);
-	mtx_ortho(MVP, -aspect, aspect, -1, 1, 1, -1);
+	MVP.setOrtho(-2.66, 2.66, -2, 2, 1, -1);
 
 	glViewport(0, 0, c->width, c->height);
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
+	if (pgm.compile("test1.vs","test1.fs"))
+		return -1;
+
+	aVertex = pgm.getAttribID("aVertex");
+	aTexCoord = pgm.getAttribID("aTexCoord");
+	uMVP = pgm.getUniformID("uMVP");
+	uTexture = pgm.getUniformID("uTexture");
+
+	if(glGetError() != GL_NO_ERROR) fprintf(stderr,"OOPS!\n");
+
 	glEnable(GL_TEXTURE_2D);
 
 	glGenTextures(1, &tex0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texw, texh, 0, GL_ALPHA,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texw, texh, 0, GL_RGBA,
 		GL_UNSIGNED_BYTE, texdata);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	return 0;
 }
 
 int scene_draw(struct ctxt *c) {
-	update_shaders();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	glUseProgram(pgm);
+	pgm.use();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glUniform1i(uTexture, 0);
 
 	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 0, verts);

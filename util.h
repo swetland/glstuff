@@ -16,54 +16,6 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#ifdef __cplusplus
-extern "C" {
-#else
-typedef float mat4[4][4];
-typedef float vec4[4];
-typedef float vec3[3];
-
-/* load the identity matrix */
-void mtx_identity(mat4 out);
-
-/* out = left * right */
-void mtx_mul(mat4 out, mat4 left, mat4 right);
-
-/* avoids a copy, but out and right may not be the same */
-/* mtx_mul_unsafe(a, a, b) = OK, mtx_mul_unsafe(a, b, a) = FAIL */
-void mtx_mul_unsafe(mat4 out, mat4 left, mat4 right);
-
-void mtx_mul_vec4(vec4 out, mat4 left, vec4 right);
-
-/* applies the transform to out */
-void mtx_translate(mat4 out, float x, float y, float z);
-void mtx_rotate_x(mat4 out, float angle);
-void mtx_rotate_y(mat4 out, float angle);
-void mtx_rotate_z(mat4 out, float angle);
-
-/* initializes matrix out to the transform */
-void mtx_translation(mat4 out, float x, float y, float z);
-void mtx_x_rotation(mat4 out, float angle);
-void mtx_y_rotation(mat4 out, float angle);
-void mtx_z_rotation(mat4 out, float angle);
-
-/* GLU-style perspective matrix helper functions */
-void mtx_ortho(mat4 out,
-	float left, float right,
-	float bottom, float top,
-	float near, float far);
-
-void mtx_frustum(mat4 out,
-	float left, float right, float bottom, float top,
-	float znear, float zfar);
-
-void mtx_perspective(mat4 out,
-	float fov_degrees, float aspect_ratio,
-	float znear, float zfar);
-#endif
-
-void mtx_dump(const float m[16], const char *name);
-
 /* file io helpers */
 void *load_png_rgba(const char *fn, unsigned *width, unsigned *height, int texture);
 void *load_png_gray(const char *fn, unsigned *width, unsigned *height, int texture);
@@ -83,8 +35,5 @@ struct model {
 
 struct model *load_wavefront_obj(const char *fn);
 
-#ifdef __cplusplus
-}
-#endif
 #endif
 

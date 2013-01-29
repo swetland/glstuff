@@ -19,19 +19,24 @@
 
 #include "util.h"
 #include "glue.h"
+#include "matrix.h"
+#include "program.h"
 
 void *texdata;
 unsigned texw, texh;
 
-const char *vert_src, *frag_src;
-
-GLuint pgm, vshd, fshd, tex0;
+GLuint tex0;
 GLuint aVertex, aTexCoord;
 GLuint uMVP, uTexture;
- 
+
+Program pgm; 
 mat4 MVP;
 
 GLfloat verts[] = {
+	-1, -1, 0,
+	-1, 1, 0,
+	1, -1, 0,
+	1, 1, 0,
 	-0.5f, -0.5f, 0.0f,
 	-0.5f, 0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f,
@@ -46,54 +51,47 @@ GLfloat texcoords[] = {
 };
 
 int scene_init(struct ctxt *c) {
-	if (!(texdata = load_png_rgba("texture1.png", &texw, &texh, 1))) 
-		return -1;
-	if (!(vert_src = load_file("test1.vs", 0)))
-		return -1;
-	if (!(frag_src = load_file("test1.fs", 0)))
+	float aspect;
+
+	if (!(texdata = load_png_gray("texture.sdf.png", &texw, &texh, 1)))
 		return -1;
 
-	mtx_identity(MVP);
-	mtx_ortho(MVP, -2.66, 2.66, -2, 2, 1, -1);
+	if (pgm.compile("test4.vs","test4.fs"))
+		return -1;
+
+	aVertex = pgm.getAttribID("aVertex");
+	aTexCoord = pgm.getAttribID("aTexCoord");
+	uMVP = pgm.getUniformID("uMVP");
+	uTexture = pgm.getUniformID("uTexture");
+
+ 	aspect = ((float)c->width) / ((float)c->height);
+	MVP.setOrtho(-aspect, aspect, -1, 1, 1, -1);
 
 	glViewport(0, 0, c->width, c->height);
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
-	if (shader_compile(vert_src, frag_src, &pgm, &vshd, &fshd))
-		return -1;
-
-	aVertex = glGetAttribLocation(pgm, "aVertex");
-	aTexCoord = glGetAttribLocation(pgm, "aTexCoord");
-	uMVP = glGetUniformLocation(pgm, "uMVP");
-	uTexture = glGetUniformLocation(pgm, "uTexture");
-
-	if(glGetError() != GL_NO_ERROR) fprintf(stderr,"OOPS!\n");
-
 	glEnable(GL_TEXTURE_2D);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	glGenTextures(1, &tex0);
-	
 	glBindTexture(GL_TEXTURE_2D, tex0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texw, texh, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, texw, texh, 0, GL_ALPHA,
 		GL_UNSIGNED_BYTE, texdata);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	return 0;
 }
 
 int scene_draw(struct ctxt *c) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glUseProgram(pgm);
+
+	pgm.use();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glUniform1i(uTexture, 0);
 
 	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 0, verts);

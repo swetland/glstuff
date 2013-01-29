@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <sys/time.h>
+#include <time.h>
 
 #include "util.h"
 #include "glue.h"
@@ -41,7 +41,7 @@ int check_compile_error(GLuint obj, const char *fn) {
 	if (fn) glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &len);
 	else glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &len);
 
-	buf = malloc(len + 1);
+	buf = (char*) malloc(len + 1);
 	memset(buf, 0, len);
 	if (buf != 0) {
 		if (fn) glGetShaderInfoLog(obj, len, &len, buf);

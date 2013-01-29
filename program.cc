@@ -18,7 +18,7 @@
 
 #include "glue.h"
 #include "util.h"
-#include "Program.h"
+#include "program.h"
 
 Program::Program() : vsrc(NULL), fsrc(NULL), status(-1) {
 }

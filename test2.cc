@@ -20,18 +20,19 @@
 
 #include "util.h"
 #include "glue.h"
+#include "program.h"
+#include "matrix.h"
 
 #include <math.h>
 
 void *texdata;
 unsigned texw, texh;
 
-const char *vert_src, *frag_src;
-
-GLuint pgm, vshd, fshd, tex0;
+GLuint tex0;
 GLuint aVertex, aTexCoord;
 GLuint uMVP, uTexture;
 
+Program pgm;
 mat4 perspective;
 mat4 MVP;
 
@@ -83,34 +84,25 @@ int scene_init(struct ctxt *c) {
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
-	if (!(vert_src = load_file("test1.vs", 0)))
-		return -1;
-	if (!(frag_src = load_file("test1.fs", 0)))
-		return -1;
 
-	mtx_identity(MVP);
-	mtx_perspective(perspective, 60.0, aspect, 1.0, 10.0);
+	perspective.setPerspective(D2R(60.0), aspect, 1.0, 10.0);
 
 	glViewport(0, 0, c->width, c->height);
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
-	if (shader_compile(vert_src, frag_src, &pgm, &vshd, &fshd))
+	if (pgm.compile("test1.vs", "test1.fs"))
 		return -1;
 
-	aVertex = glGetAttribLocation(pgm, "aVertex");
-	aTexCoord = glGetAttribLocation(pgm, "aTexCoord");
-	uMVP = glGetUniformLocation(pgm, "uMVP");
-	uTexture = glGetUniformLocation(pgm, "uTexture");
-
-	if(glGetError() != GL_NO_ERROR) fprintf(stderr,"OOPS!\n");
+	aVertex = pgm.getAttribID("aVertex");
+	aTexCoord = pgm.getAttribID("aTexCoord");
+	uMVP = pgm.getUniformID("uMVP");
+	uTexture = pgm.getUniformID("uTexture");
 
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	glGenTextures(1, &tex0);
 	
@@ -126,23 +118,23 @@ int scene_init(struct ctxt *c) {
 int scene_draw(struct ctxt *c) {
 	mat4 camera;
 
-	mtx_identity(camera);
-	mtx_rotate_y(camera, a);
-	mtx_rotate_x(camera, 25.0);
-	mtx_translate(camera, 0, 0, -3.0);
+	camera.identity();
+	camera.rotateY(D2R(a));
+	camera.rotateX(D2R(25.0));
+	camera.translate(0, 0, -3.0);
 
-	mtx_mul_unsafe(MVP, camera, perspective);
+	MVP = camera * perspective;
 
 	a += 1.0;
 	if (a > 360.0) a = 0.0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(pgm);
+	pgm.use();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
-	glUniformMatrix4fv(uMVP, 1, GL_FALSE, (void*) MVP);
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glUniform1i(uTexture, 0);
 
 	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 5*4, data);

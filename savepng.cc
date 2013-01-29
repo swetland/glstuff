@@ -77,10 +77,10 @@ exit:
 }
 
 int save_png_rgba(const char *fn, void *data, unsigned w, unsigned h) {
-	return _save_png(fn, data, w, h, 4);
+	return _save_png(fn, (png_byte*) data, w, h, 4);
 }
 
 int save_png_gray(const char *fn, void *data, unsigned w, unsigned h) {
-	return _save_png(fn, data, w, h, 1);
+	return _save_png(fn, (png_byte*) data, w, h, 1);
 }
 

@@ -9,36 +9,23 @@ CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
 CXXFLAGS := $(CFLAGS)
 LIBS := $(SDLLIBS) -lGL -lm -lpng
 
-COMMONOBJS := util.o sdlglue.o loadpng.o loadfile.o loadobj.o
+COMMONOBJS := sdlglue.o loadpng.o loadfile.o loadobj.o program.o matrix.o
 
-all: test1 test2 test3 test4 test5 mksdf test2d
+all:: everything
 
-mksdf: mksdf.c loadpng.c savepng.c
-	gcc -g -Wall -o mksdf mksdf.c loadpng.c savepng.c -lm -lpng
+APPS := test1 test2 test3 test4 test5 test2d 
 
-TEST1OBJS := test1.o $(COMMONOBJS)
-test1: $(TEST1OBJS)
-	$(CC) -o test1 $(TEST1OBJS) $(LIBS)
+define build-test
+$1: $1.o $(COMMONOBJS)
+	$(CC) -o $1 $1.o $(COMMONOBJS) $(LIBS)
+endef
 
-TEST2OBJS := test2.o $(COMMONOBJS)
-test2: $(TEST2OBJS)
-	$(CC) -o test2 $(TEST2OBJS) $(LIBS)
+$(foreach t,$(APPS),$(eval $(call build-test,$t)))
 
-TEST2DOBJS := test2d.o $(COMMONOBJS) matrix.o
-test2d: $(TEST2DOBJS)
-	$(CC) -o test2d $(TEST2DOBJS) $(LIBS)
+mksdf: mksdf.o loadpng.o savepng.o
+	$(CC) -o mksdf mksdf.o loadpng.o savepng.o $(LIBS)
 
-TEST3OBJS := test3.o $(COMMONOBJS)
-test3: $(TEST3OBJS)
-	$(CC) -o test3 $(TEST3OBJS) $(LIBS)
-
-TEST4OBJS := test4.o $(COMMONOBJS)
-test4: $(TEST4OBJS)
-	$(CC) -o test4 $(TEST4OBJS) $(LIBS)
-
-TEST5OBJS := test5.o $(COMMONOBJS) matrix.o
-test5: $(TEST5OBJS)
-	$(CC) -o test5 $(TEST5OBJS) $(LIBS)
+everything: $(APPS) mksdf
 
 clean::
-	rm -f test1 test2 test3 test4 test5 mksdf test2d *.o
+	rm -f $(APPS) mksdf *.o
