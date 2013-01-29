@@ -150,6 +150,9 @@ int DebugText::render(void) {
 	glEnableVertexAttribArray(aTexCoord);
 
 	glDrawArrays(GL_TRIANGLES, 0, cbw * cbh * 6);
+	glDisableVertexAttribArray(aVertex);
+	glDisableVertexAttribArray(aTexCoord);
+
 	return 0;
 }
 

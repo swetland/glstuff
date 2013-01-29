@@ -50,6 +50,8 @@ float a = 0.0;
 
 struct model *m;
 
+extern int fps;
+
 int scene_init(struct ctxt *c) {
 	float aspect = ((float) c->width) / ((float) c->height);
 
@@ -138,10 +140,10 @@ int scene_draw(struct ctxt *c) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 8*4, m->vdata);
-	glEnableVertexAttribArray(aVertex);
 	glVertexAttribPointer(aNormal, 3, GL_FLOAT, GL_FALSE, 8*4, m->vdata + 3);
-	glEnableVertexAttribArray(aNormal);
 	glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 8*4, m->vdata + 6);
+	glEnableVertexAttribArray(aVertex);
+	glEnableVertexAttribArray(aNormal);
 	glEnableVertexAttribArray(aTexCoord);
 
 	Model.identity().translate(20, 40, 30);
@@ -173,9 +175,14 @@ int scene_draw(struct ctxt *c) {
 	glUniformMatrix4fv(uMVP, 1, GL_FALSE, MVP);
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
+	glDisableVertexAttribArray(aVertex);
+	glDisableVertexAttribArray(aNormal);
+	glDisableVertexAttribArray(aTexCoord);
+
 	debugtext.clear();
 	debugtext.printf("Hello, Test #5\n");
 	debugtext.printf("Cam @ %6.3f %6.3f\n", camx, camz);
+	debugtext.printf("\n%d fps\n", fps);
 	debugtext.render();
 
 	return 0;

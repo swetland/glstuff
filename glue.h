@@ -48,6 +48,7 @@ GLXTN PFNGLBUFFERDATAPROC glBufferData;
 GLXTN PFNGLCOMPILESHADERPROC glCompileShader;
 GLXTN PFNGLCREATEPROGRAMPROC glCreateProgram;
 GLXTN PFNGLCREATESHADERPROC glCreateShader;
+GLXTN PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 GLXTN PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 GLXTN PFNGLGENBUFFERSPROC glGenBuffers;
 GLXTN PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
@@ -71,7 +72,7 @@ struct {
 	const char *name;
 } fntb[] = {
 	EFUNC(glActiveTexture), EFUNC(glAttachShader), EFUNC(glBindBuffer), EFUNC(glBufferData),
-	EFUNC(glCompileShader), EFUNC(glCreateProgram), EFUNC(glCreateShader),
+	EFUNC(glCompileShader), EFUNC(glCreateProgram), EFUNC(glCreateShader), EFUNC(glDisableVertexAttribArray),
 	EFUNC(glEnableVertexAttribArray), EFUNC(glGenBuffers), EFUNC(glGetAttribLocation), EFUNC(glGetProgramiv),
 	EFUNC(glGetProgramInfoLog), EFUNC(glGetShaderiv), EFUNC(glGetShaderInfoLog),
 	EFUNC(glGetUniformLocation), EFUNC(glLinkProgram), EFUNC(glShaderSource),

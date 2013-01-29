@@ -142,6 +142,8 @@ void handle_events(void) {
 	}
 }
 
+int fps = 0;
+
 int main(int argc, char **argv) {
 	int vsync = 1;
 	struct ctxt c;
@@ -235,6 +237,7 @@ int main(int argc, char **argv) {
 		t1 = time(0);
 		count++;
 		if (t0 != t1) {
+			fps = count;
 			printf("%d fps\n", count);
 			count = 0;
 			t0 = t1;
