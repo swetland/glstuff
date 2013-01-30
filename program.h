@@ -18,13 +18,15 @@
 
 class Program {
 	GLuint pobj, vobj, fobj;
-	char *vsrc, *fsrc;
+	const char *vsrc, *fsrc;
 	int status;
 
 public:
 	Program();
 
 	int compile(const char *vfn, const char *ffn);
+	int compileStr(const char *vsc, const char *fsc);
+
 	int ready() { return status == 0; }
 
 	void use(void) {

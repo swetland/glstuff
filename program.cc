@@ -78,13 +78,23 @@ Program::Program() : vsrc(NULL), fsrc(NULL), status(-1) {
 }
 
 int Program::compile(const char *vfn, const char *ffn) {
-	if (!(vsrc = (char*) load_file(vfn, 0)))
+	if (!(vsrc = (const char*) load_file(vfn, 0)))
 		return -1;
-	if (!(fsrc = (char*) load_file(ffn, 0)))
+	if (!(fsrc = (const char*) load_file(ffn, 0)))
 		return -1;
 	if (shader_compile(vsrc, fsrc, &pobj, &vobj, &fobj))
 		return -1;
 	status = 0;
 	return 0;
 }
+
+int Program::compileStr(const char *vsc, const char *fsc) {
+	vsrc = vsc;
+	fsrc = fsc;
+	if (shader_compile(vsrc, fsrc, &pobj, &vobj, &fobj))
+		return -1;
+	status = 0;
+	return 0;
+}
+
 
