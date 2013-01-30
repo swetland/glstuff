@@ -61,6 +61,54 @@ static void dtc_init(DebugTextCell *data, int w, int h) {
 	}
 }
 
+static const char *vsrc = R"(
+uniform mat4 uMVP;
+uniform sampler2D uTexture1;
+attribute vec4 aVertex;
+attribute vec4 aTexCoord;
+
+varying vec4 vTexCoord;
+const float cbw = 32.0;
+const float cbh = 32.0;
+
+void main() {
+        gl_Position = uMVP * vec4(aVertex.xy,0.0,1.0);
+        vTexCoord = aTexCoord;
+}
+)";
+
+static const char *fsrc = R"(
+uniform sampler2D uTexture0;
+uniform sampler2D uTexture1;
+
+varying vec4 vTexCoord; // u, v, cx, cy
+
+// width and height of the "character buffer" 
+const float cbw = 32.0;
+const float cbh = 32.0;
+
+// cell count (h & v) for character map
+const float cc = 16.0;
+
+void main() {
+        vec2 base, offset;
+        float ch;
+
+        // look up characer in cbw x cbh character buffer texture
+        ch = texture2D(uTexture1, vec2(vTexCoord.z / cbw, vTexCoord.w / cbh)).a
+                * 255.0 + 0.001953125;
+        //ch = vChar;
+
+        // base texcoord of ch (0..255) in cc x cc character map texture
+        base = vec2(fract(ch / cc), -floor(ch / cc) / cc); 
+
+        // scale offset texcoord
+        offset = vTexCoord.xy / cc;
+
+        gl_FragColor = texture2D(uTexture0, base + offset * vec2(1.0,-1.0));
+}
+)";
+
 int DebugText::init(unsigned w, unsigned h) {
 	cbw = w;
 	cbh = h;
@@ -71,12 +119,12 @@ int DebugText::init(unsigned w, unsigned h) {
 	data = (DebugTextCell*) malloc(sizeof(DebugTextCell) * w * h * 6);
 	cbdata = (unsigned char*) malloc(sizeof(unsigned char) * w * h);
 
-	dtc_init(data, 32, 32);
+	dtc_init(data, w, h);
 
 	if (!(fontdata = load_png_rgba("font-vincent-8x8.png", &fdw, &fdh, 1))) 
 		return -1;
 
-	if (pgm.compile("test2d.vs", "test2d.fs"))
+	if (pgm.compileStr(vsrc, fsrc))
 		return -1;
 
 	aVertex = pgm.getAttribID("aVertex");
