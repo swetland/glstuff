@@ -17,6 +17,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <vector>
+using std::vector;
+
 #include "util.h"
 
 struct v3 {
@@ -37,117 +40,46 @@ struct i3 {
 };
 
 struct obj {
-	struct v3 *v;
-	struct v3 *vn;
-	struct v2 *vt;	
-	struct i3 *f;
-	unsigned max_v, num_v;
-	unsigned max_vn, num_vn;
-	unsigned max_vt, num_vt;
-	unsigned max_f, num_f;
+	vector<v3> vertices;
+	vector<v3> normals;
+	vector<v2> texcoords;
+	vector<i3> triangles;
 };
-
-static void obj_destroy(struct obj *o) {
-	if (o->v) free(o->v);
-	if (o->vn) free(o->vn);
-	if (o->vt) free(o->vt);
-	if (o->f) free(o->f);
-	free(o);
-}
-
-static void *resize(void *array, unsigned *max, unsigned esz) {
-	void *tmp;
-	unsigned n = *max ? *max * 2 : 32;
-	tmp = realloc(array, esz * n);
-	if (!tmp)
-		free(array);
-	*max = n;
-	return tmp;
-}
-	
-static int obj_add_v(struct obj *o, float x, float y, float z) {
-	unsigned n = o->num_v;
-	if (n == o->max_v)
-		if(!(o->v = (v3*) resize(o->v, &o->max_v, sizeof(struct v3))))
-			return -1;
-	o->v[n].x = x;
-	o->v[n].y = y;
-	o->v[n].z = z;
-	o->num_v = n + 1;
-	return 0;		
-}
-
-static int obj_add_vn(struct obj *o, float x, float y, float z) {
-	unsigned n = o->num_vn;
-	if (n == o->max_vn)
-		if(!(o->vn = (v3*) resize(o->vn, &o->max_vn, sizeof(struct v3))))
-			return -1;
-	o->vn[n].x = x;
-	o->vn[n].y = y;
-	o->vn[n].z = z;
-	o->num_vn = n + 1;
-	return 0;		
-}
-
-static int obj_add_vt(struct obj *o, float u, float v) {
-	unsigned n = o->num_vt;
-	if (n == o->max_vt)
-		if(!(o->vt = (v2*) resize(o->vt, &o->max_vt, sizeof(struct v3))))
-			return -1;
-	o->vt[n].u = u;
-	o->vt[n].v = v;
-	o->num_vt = n + 1;
-	return 0;		
-}
-
-static int obj_add_f(struct obj *o, int v, int vt, int vn) {
-	unsigned n = o->num_f;
-	if (n == o->max_f)
-		if(!(o->f = (i3*) resize(o->f, &o->max_f, sizeof(struct v3))))
-			return -1;
-
-	/* XXX: range check */
-	v -= 1;
-	vt -= 1;
-	vn -= 1;
-
-	o->f[n].v = v;
-	o->f[n].vt = vt;
-	o->f[n].vn = vn;
-	o->num_f = n + 1;
-	return 0;		
-}
 
 struct obj *load_obj(const char *fn) {
 	char buf[128];
 	FILE *fp;
 	struct obj *o = 0;
-	float x, y, z;
-	int a, b, c;
 
 	if (!(fp = fopen(fn, "r")))
 		goto exit;
 
-	o = (obj*) malloc(sizeof(struct obj));
+	o = new(obj);
 	if (!o)
 		goto close_and_exit;
-	memset(o, 0, sizeof(struct obj));
 
 	while (fgets(buf, sizeof(buf), fp) != 0) {
 		if (!strncmp(buf, "v ", 2)) {
-			sscanf(buf + 2, "%f %f %f", &x, &y, &z);
-			obj_add_v(o, x, y, z);
+			v3 t;
+			sscanf(buf + 2, "%f %f %f", &t.x, &t.y, &t.z);
+			o->vertices.push_back(t);
 		} else if (!strncmp(buf, "vn ", 3)) {
-			sscanf(buf + 3, "%f %f %f", &x, &y, &z);
-			obj_add_vn(o, x, y, z);
+			v3 t;
+			sscanf(buf + 3, "%f %f %f", &t.x, &t.y, &t.z);
+			o->normals.push_back(t);
 		} else if (!strncmp(buf, "vt ", 3)) {
-			sscanf(buf + 3, "%f %f", &x, &y);
-			obj_add_vt(o, x, y);
+			v2 t;
+			sscanf(buf + 3, "%f %f", &t.u, &t.v);
+			o->texcoords.push_back(t);
 		} else if (!strncmp(buf, "f ", 2)) {
+			i3 t;
 			char *tmp = buf + 2;
 			/* XXX: handle non-triangles */
-			while (sscanf(tmp, "%d/%d/%d", &a, &b, &c) == 3) {
-				obj_add_f(o, a, b, c);
+			while (sscanf(tmp, "%d/%d/%d", &t.v, &t.vt, &t.vn) == 3) {
+				t.v--;
+				t.vt--;
+				t.vn--;
+				o->triangles.push_back(t);
 				tmp = strstr(tmp, " ");
 				if (!tmp) break;
 				tmp++;
@@ -166,31 +98,36 @@ exit:
 static struct model *obj_to_model(struct obj *o) {
 	int i, j, n;
 	struct model *m;
+	int count = o->triangles.size();
 
 	if(!(m = (model*) malloc(sizeof(struct model))))
 		return 0;
 	memset(m, 0, sizeof(struct model));
 
-	if (!(m->vdata = (float*) malloc(sizeof(float) * 8 * o->num_f))) {
+	if (!(m->vdata = (float*) malloc(sizeof(float) * 8 * count))) {
 		free(m);
 		return 0;
 	}
-	if (!(m->idx = (unsigned short *) malloc(sizeof(short) * o->num_f))) {
+	if (!(m->idx = (unsigned short *) malloc(sizeof(short) * count))) {
 		free(m->vdata);
 		free(m);
 		return 0;
 	}
 
-	for (n = 0, i = 0; i < o->num_f; i++) {
+	for (n = 0, i = 0; i < count; i++) {
+		i3 &tri = o->triangles[i];
 		float data[8];
-		data[0] = o->v[o->f[i].v].x;
-		data[1] = o->v[o->f[i].v].y;
-		data[2] = o->v[o->f[i].v].z;
-		data[3] = o->vn[o->f[i].vn].x;
-		data[4] = o->vn[o->f[i].vn].y;
-		data[5] = o->vn[o->f[i].vn].z;
-		data[6] = o->vt[o->f[i].vt].u;
-		data[7] = o->vt[o->f[i].vt].v;
+		v3 &vrt = o->vertices[tri.v];
+		v3 &nrm = o->normals[tri.vn];
+		v2 &txc = o->texcoords[tri.vt];
+		data[0] = vrt.x;
+		data[1] = vrt.y;
+		data[2] = vrt.z;
+		data[3] = nrm.x;
+		data[4] = nrm.y;
+		data[5] = nrm.z;
+		data[6] = txc.u;
+		data[7] = txc.v;
 		for (j = 0; j < n; j++)
 			if (!memcmp(data, &m->vdata[8 * j], sizeof(float) * 8))
 				goto found_it;
@@ -201,7 +138,7 @@ found_it:
 	}
 
 	m->vcount = n;
-	m->icount = o->num_f;
+	m->icount = count;
 
 	return m;
 }
@@ -233,7 +170,7 @@ struct model *load_wavefront_obj(const char *fn) {
 	if (!o)
 		return 0;
 	m = obj_to_model(o);
-	obj_destroy(o);
+	delete o;
 	return m;
 } 
 
