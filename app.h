@@ -40,6 +40,7 @@ public:
 
 	virtual int init(void) = 0;
 	virtual int render(void) = 0;
+	virtual void key(int code) {};
 
 private:
 	int _width, _height;

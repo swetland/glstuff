@@ -92,6 +92,7 @@ void App::handleEvents(void) {
 			break;
 		case SDL_KEYUP:
 			_keystate[ev.key.keysym.sym] = 0;
+			key(ev.key.keysym.sym);
 			break;
 		case SDL_QUIT:
 			quit();
