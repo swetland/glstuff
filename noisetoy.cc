@@ -17,9 +17,12 @@ public:
 	NoiseApp();
 	int init(void);
 	int render(void);
+	void key(int code);
 private:
 	unsigned char *data;
 	int w, h;
+
+	int mode;
 
 	Program pgm;
 
@@ -40,6 +43,7 @@ NoiseApp::NoiseApp() : App(), w(512), h(512) {
 	scale = 1.0;
 	offx = offy = 0;
 	n = 0;
+	mode = 0;
 }
 
 static const char *vsrc = R"(
@@ -85,6 +89,20 @@ static GLfloat vtx_xy_uv[] = {
 	 1.0,  1.0, 1.0, 1.0,
 };
 
+void NoiseApp::key(int code) {
+	switch (code) {
+	case SDLK_x:
+		fprintf(stderr,"saving...\n");
+		save_png_gray("out.png", data, w, h);
+		break;
+	case SDLK_m:
+		mode++;
+		if (mode == 4) mode = 0;
+		fprintf(stderr, "mode: %d\n", mode);
+		break;
+	}
+}
+
 int NoiseApp::render(void) {
 	int x, y;
 //	n += 0.01;
@@ -94,25 +112,30 @@ int NoiseApp::render(void) {
 	if (keydown(SDLK_a)) offx -= 0.1;
 	if (keydown(SDLK_d)) offx += 0.1;
 
-	if (keydown(SDLK_r)) scale += 0.1;
-	if (keydown(SDLK_f)) scale -= 0.1;
+	if (keydown(SDLK_r)) scale += 0.01;
+	if (keydown(SDLK_f)) scale -= 0.01;
 
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
 			float fy = float(y) / float(h) + offy;
 			float fx = float(x) / float(w) + offx;
 
-	fx *= scale;
-	fy *= scale;
+			fx *= scale;
+			fy *= scale;
 	
-			float sn =
-	snoise(fx, fy) * 1.0
-	+ snoise(fx*2.0,fy*6.0) * 0.25
-	+ snoise(fx*24.0,fy*4.0) * 0.125 // 0.0625
-#if 0 
-	+ snoise(fx*8.0,fy*16.0) * 0.0625 // 0.015625
-#endif
-	;
+			float sn = snoise(fx, fy) * 1.0;
+
+			switch (mode) {
+			case 2:
+				sn += snoise(fx*8.0,fy*8.0) * 0.0625;
+			case 1:
+				sn += snoise(fx*2.0,fy*2.0) * 0.25;
+				sn += snoise(fx*4.0,fy*4.0) * 0.125;
+				break;
+			case 3:
+				sn += snoise(fx*13.3,fy*9.2) * 0.65;
+				break;
+			}
 
 #if 1
 	if (sn < -1.0) sn = -1.0;
@@ -135,9 +158,9 @@ int NoiseApp::render(void) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, w, h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glUniform1i(uTexture, 0);
 
@@ -152,8 +175,7 @@ int NoiseApp::render(void) {
 	glDisableVertexAttribArray(aTexCoord);
 
 	dtxt.clear();
-	//dtxt.printf("NoiseToy v0");
-	dtxt.printf("%f %f %f\n", offx, offy, scale);
+	dtxt.printf("%d> %f %f %f\n", mode, offx, offy, scale);
 	dtxt.render();
 	return 0;
 }
