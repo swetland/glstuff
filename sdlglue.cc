@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 
-#include <SDL.h>
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
-#include <time.h>
-
-#include "util.h"
+#include <SDL.h>
 
 #ifdef _WIN32
 #define GLUE_DEFINE_EXTENSIONS
 #endif
 
-#include "glue.h"
+#include "opengl.h"
+#include "util.h"
+#include "app.h"
 
-void die(const char *fmt, ...) {
+static void die(const char *fmt, ...) {
 	fprintf(stderr,"ERROR: %s\n", fmt);
 	exit(-1);
 }
 
 #ifdef _WIN32
 #if !WITH_SDL2
-int SDL_GL_ExtensionSupported(const char *name) {
+static int SDL_GL_ExtensionSupported(const char *name) {
 	if (strstr((char*)glGetString(GL_EXTENSIONS), name))
 		return 1;
 	else
@@ -46,7 +46,7 @@ int SDL_GL_ExtensionSupported(const char *name) {
 }
 #endif
 
-void glsl_init(void) {
+static void glsl_init(void) {
 	int n;
 	if (!SDL_GL_ExtensionSupported("GL_ARB_shader_objects") ||
 		!SDL_GL_ExtensionSupported("GL_ARB_shading_language_100") ||
@@ -63,78 +63,35 @@ void glsl_init(void) {
 void glsl_init(void) {}
 #endif
 
-int check_compile_error(GLuint obj, const char *fn) {
-	GLint r, len;
-	char *buf;
-
-	if (fn) glGetShaderiv(obj, GL_COMPILE_STATUS, &r);
-	else glGetProgramiv(obj, GL_LINK_STATUS, &r);
-
-	if (r) return 0;
-
-	if (fn) glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &len);
-	else glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &len);
-
-	buf = (char*) malloc(len + 1);
-	memset(buf, 0, len);
-	if (buf != 0) {
-		if (fn) glGetShaderInfoLog(obj, len, &len, buf);
-		else glGetProgramInfoLog(obj, len, &len, buf);
-		buf[len] = 0;
-	}
-	fprintf(stderr,"Shader %s Error:\n%s\n",
-		fn ? "Compile" : "Link", buf ? buf : "???");
-
-	free(buf);
-	return -1;
-}
-
-int shader_compile(const char *vshader, const char *fshader,
-		GLuint *_pgm, GLuint *_vshd, GLuint *_fshd) {
-	GLuint pgm, vshd, fshd;
-
-	pgm = glCreateProgram();
-	vshd = glCreateShader(GL_VERTEX_SHADER);
-	fshd = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(vshd, 1, &vshader, NULL);
-	glShaderSource(fshd, 1, &fshader, NULL);
-	glCompileShader(vshd);
-	check_compile_error(vshd, vshader);
-
-	glCompileShader(fshd);
-	check_compile_error(fshd, fshader);
-
-	glAttachShader(pgm, vshd);
-	glAttachShader(pgm, fshd);
-	glLinkProgram(pgm);
-	if (check_compile_error(pgm, 0))
-		return -1;
-
-	*_pgm = pgm;
-	*_vshd = vshd;
-	*_fshd = fshd;
-	return 0;
-}
-
-void quit(void) {
+static void quit(void) {
 	SDL_Quit();
 	exit(0);
 }
 
-unsigned char keystate[SDLK_LAST + 1] = { 0, };
+App::App() : _width(640), _height(480), _vsync(1), _fps(0) {
+	memset(_keystate, 0, sizeof(_keystate));
+}
 
-void handle_events(void) {
+App::~App() {
+}
+
+void App::setSize(int w, int h) {
+	_width = w;
+	_height = h;
+}
+
+void App::handleEvents(void) {
 	SDL_Event ev;
 
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
 		case SDL_KEYDOWN:
-			keystate[ev.key.keysym.sym] = 1;
+			_keystate[ev.key.keysym.sym] = 1;
 			if (ev.key.keysym.sym == SDLK_ESCAPE)
 				quit();
 			break;
 		case SDL_KEYUP:
-			keystate[ev.key.keysym.sym] = 0;
+			_keystate[ev.key.keysym.sym] = 0;
 			break;
 		case SDL_QUIT:
 			quit();
@@ -142,36 +99,30 @@ void handle_events(void) {
 	}
 }
 
-int fps = 0;
-
-int main(int argc, char **argv) {
-	int vsync = 1;
-	struct ctxt c;
+void App::setOptions(int argc, char **argv) {
 	char *x;
+	argc--;
+	argv++;
+	while (argc--) {
+		if (!strcmp("-nosync",argv[0])) {
+			_vsync = 0;
+		} else if (isdigit(argv[0][0]) && (x = strchr(argv[0],'x'))) {
+			_width = atoi(argv[0]);
+			_height = atoi(x + 1);
+		} else {
+			fprintf(stderr,"unknown argument '%s'\n",argv[0]);
+		}
+		argv++;
+	}
+}
+
+int App::run(void) {
 	time_t t0, t1;
 	int count;
 #if WITH_SDL2
 	SDL_Window *w;
 	SDL_GLContext gc;
 #endif
-
-	c.width = 640;
-	c.height = 480;
-	c.data = 0;
-
-	argc--;
-	argv++;
-	while (argc--) {
-		if (!strcmp("-nosync",argv[0])) {
-			vsync = 0;
-		} else if (isdigit(argv[0][0]) && (x = strchr(argv[0],'x'))) {
-			c.width = atoi(argv[0]);
-			c.height = atoi(x + 1);
-		} else {
-			fprintf(stderr,"unknown argument '%s'\n",argv[0]);
-		}
-		argv++;
-	}
 
 	if (SDL_Init(SDL_INIT_VIDEO))
 		die("sdl video init failed");
@@ -195,36 +146,36 @@ int main(int argc, char **argv) {
 #endif
 
 	/* enable vsync */
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL,vsync);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,vsync);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, _vsync);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, _vsync);
 
 #if WITH_SDL2
-	if (!(w = SDL_CreateWindow("Test", 0, 0, c.width, c.height,
+	if (!(w = SDL_CreateWindow("Test", 0, 0, _width, _height,
 		SDL_WINDOW_OPENGL)))
 		die("sdl cannot create window");
 
 	if (!(gc = SDL_GL_CreateContext(w)))
 		die("sdl cannot create gl context");
 #else
-	if (SDL_SetVideoMode(c.width, c.height, 32,
+	if (SDL_SetVideoMode(_width, _height, 32,
 		SDL_HWSURFACE | SDL_GL_DOUBLEBUFFER | SDL_OPENGL) == NULL) 
 		die("sdl cannot set mode");
 #endif	
 
 	glsl_init();
 
-	if (scene_init(&c))
+	if (init())
 		return -1;
 
 	t0 = time(0);
 	count = 0;
 	for (;;) {
-		handle_events();
+		handleEvents();
 
-		if (scene_draw(&c))
+		if (render())
 			return -1;
 
-		if (vsync) {
+		if (_vsync) {
 #if WITH_SDL2 
 			SDL_GL_SwapWindow(w);
 #else
@@ -237,13 +188,12 @@ int main(int argc, char **argv) {
 		t1 = time(0);
 		count++;
 		if (t0 != t1) {
-			fps = count;
+			_fps = count;
 			printf("%d fps\n", count);
 			count = 0;
 			t0 = t1;
 		}
 	}
-
-	return 0;
+	return -1;
 }
 

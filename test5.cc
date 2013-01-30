@@ -20,48 +20,56 @@
 #include <unistd.h>
 #endif
 
+#include "app.h"
 #include "util.h"
 #include "matrix.h"
-#include "glue.h"
 #include "program.h"
 #include "debugtext.h"
 
 #include <math.h>
 
-void *texdata;
-unsigned texw, texh;
-
-GLuint tex0;
-GLuint aVertex, aNormal, aTexCoord;
-GLuint uMV, uMVP, uLight, uTexture;
-
-Program pgm;
-DebugText debugtext;
-
-float camx = 0, camy = 0, camz = -5;
-float camrx = 0, camry = 0, camrz = 0;
-
-extern unsigned char keystate[];
 #include <SDL_keysym.h>
 
-mat4 Projection;
+class TestApp : public App {
+public:
+	TestApp();
+	int init(void);
+	int render(void);
+private:
+	void *texdata;
+	unsigned texw, texh;
 
-float a = 0.0;
+	GLuint tex0;
+	GLuint aVertex, aNormal, aTexCoord;
+	GLuint uMV, uMVP, uLight, uTexture;
 
-struct model *m;
+	Program pgm;
+	DebugText debugtext;
 
-extern int fps;
+	float camx, camy, camz;
+	float camrx, camry, camrz;
 
-int scene_init(struct ctxt *c) {
-	float aspect = ((float) c->width) / ((float) c->height);
+	mat4 Projection;
 
+	float a;
+
+	struct model *m;
+};
+
+TestApp::TestApp() : App(),
+	camx(0), camy(0), camz(-5),
+	camrx(0), camry(0), camrz(0),
+	a(0) {
+}
+
+int TestApp::init(void) {
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
 
 	if (!(m = load_wavefront_obj("cube.obj")))
 		return -1;
 
-	glViewport(0, 0, c->width, c->height);
+	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
@@ -84,13 +92,13 @@ int scene_init(struct ctxt *c) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	Projection.setPerspective(D2R(60.0), aspect, 1.0, 100.0);
+	Projection.setPerspective(D2R(60.0), aspect(), 1.0, 100.0);
 
 	debugtext.init(32,32);
 	return 0;
 }
 
-int scene_draw(struct ctxt *c) {
+int TestApp::render(void) {
 	mat4 MVP;
 	mat4 MV;
 	mat4 Model;
@@ -102,18 +110,18 @@ int scene_draw(struct ctxt *c) {
 	float vz2 = cosf(D2R(camry + 90.0));
 	float vx2 = -sinf(D2R(camry + 90.0));
 
-	if (keystate[SDLK_w]) { camx += vx * 0.1; camz += vz * 0.1; }
-	if (keystate[SDLK_s]) { camx -= vx * 0.1; camz -= vz * 0.1; }
-	if (keystate[SDLK_a]) { camx += vx2 * 0.1; camz += vz2 * 0.1; }
-	if (keystate[SDLK_d]) { camx -= vx2 * 0.1; camz -= vz2 * 0.1; }
+	if (keydown(SDLK_w)) { camx += vx * 0.1; camz += vz * 0.1; }
+	if (keydown(SDLK_s)) { camx -= vx * 0.1; camz -= vz * 0.1; }
+	if (keydown(SDLK_a)) { camx += vx2 * 0.1; camz += vz2 * 0.1; }
+	if (keydown(SDLK_d)) { camx -= vx2 * 0.1; camz -= vz2 * 0.1; }
 
-	if (keystate[SDLK_q]) camry += 3.0;
-	if (keystate[SDLK_e]) camry -= 3.0;
+	if (keydown(SDLK_q)) camry += 3.0;
+	if (keydown(SDLK_e)) camry -= 3.0;
 
-	if (keystate[SDLK_r]) camrx -= 1.0;
-	if (keystate[SDLK_f]) camrx += 1.0;
+	if (keydown(SDLK_r)) camrx -= 1.0;
+	if (keydown(SDLK_f)) camrx += 1.0;
 
-	if (keystate[SDLK_x]) { camrx = 0; camrz = 0; }
+	if (keydown(SDLK_x)) { camrx = 0; camrz = 0; }
 
 	if (camrx < -45.0) camrx = -45.0;
 	if (camrx > 45.0) camrx = 45.0;
@@ -182,9 +190,15 @@ int scene_draw(struct ctxt *c) {
 	debugtext.clear();
 	debugtext.printf("Hello, Test #5\n");
 	debugtext.printf("Cam @ %6.3f %6.3f\n", camx, camz);
-	debugtext.printf("\n%d fps\n", fps);
+	debugtext.printf("\n%d fps\n", fps());
 	debugtext.render();
 
 	return 0;
+}
+
+int main(int argc, char **argv) {
+	TestApp app;
+	app.setOptions(argc, argv);
+	return app.run();
 }
 

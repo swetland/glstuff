@@ -17,22 +17,28 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "app.h"
 #include "util.h"
-#include "glue.h"
 #include "matrix.h"
 #include "program.h"
 
-void *texdata;
-unsigned texw, texh;
+class TestApp : public App {
+public:
+	int init(void);
+	int render(void);
+private:
+	void *texdata;
+	unsigned texw, texh;
 
-GLuint tex0;
-GLuint aVertex, aTexCoord;
-GLuint uMVP, uTexture;
+	GLuint tex0;
+	GLuint aVertex, aTexCoord;
+	GLuint uMVP, uTexture;
 
-Program pgm; 
-mat4 MVP;
+	Program pgm; 
+	mat4 MVP;
+};
 
-GLfloat verts[] = {
+static GLfloat verts[] = {
 	-1, -1, 0,
 	-1, 1, 0,
 	1, -1, 0,
@@ -43,16 +49,14 @@ GLfloat verts[] = {
 	0.5f, 0.5f, 0.0f,	
 };
 
-GLfloat texcoords[] = {
+static GLfloat texcoords[] = {
 	0.0, 0.0,
 	0.0, 1.0,
 	1.0, 0.0,
 	1.0, 1.0,
 };
 
-int scene_init(struct ctxt *c) {
-	float aspect;
-
+int TestApp::init(void) {
 	if (!(texdata = load_png_gray("texture.sdf.png", &texw, &texh, 1)))
 		return -1;
 
@@ -64,10 +68,9 @@ int scene_init(struct ctxt *c) {
 	uMVP = pgm.getUniformID("uMVP");
 	uTexture = pgm.getUniformID("uTexture");
 
- 	aspect = ((float)c->width) / ((float)c->height);
-	MVP.setOrtho(-aspect, aspect, -1, 1, 1, -1);
+	MVP.setOrtho(-aspect(), aspect(), -1, 1, 1, -1);
 
-	glViewport(0, 0, c->width, c->height);
+	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
@@ -83,7 +86,7 @@ int scene_init(struct ctxt *c) {
 	return 0;
 }
 
-int scene_draw(struct ctxt *c) {
+int TestApp::render(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	pgm.use();
@@ -103,5 +106,11 @@ int scene_draw(struct ctxt *c) {
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	return 0;
+}
+
+int main(int argc, char **argv) {
+	TestApp app;
+	app.setOptions(argc, argv);
+	return app.run();
 }
 

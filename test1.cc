@@ -17,42 +17,49 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "app.h"
 #include "util.h"
-#include "glue.h"
 #include "matrix.h"
 #include "program.h"
 
-void *texdata;
-unsigned texw, texh;
+class TestApp : public App {
+public:
+	int init(void);
+	int render(void);
 
-GLuint tex0;
-GLuint aVertex, aTexCoord;
-GLuint uMVP, uTexture;
+private:
+	void *texdata;
+	unsigned texw, texh;
+
+	GLuint tex0;
+	GLuint aVertex, aTexCoord;
+	GLuint uMVP, uTexture;
  
-mat4 MVP;
-Program pgm;
+	mat4 MVP;
+	Program pgm;
+};
 
-GLfloat verts[] = {
+static GLfloat verts[] = {
 	-0.5f, -0.5f, 0.0f,
 	-0.5f, 0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f,
 	0.5f, 0.5f, 0.0f,	
 };
 
-GLfloat texcoords[] = {
+static GLfloat texcoords[] = {
 	0.0, 0.0,
 	0.0, 1.0,
 	1.0, 0.0,
 	1.0, 1.0,
 };
 
-int scene_init(struct ctxt *c) {
+int TestApp::init(void) {
 	if (!(texdata = load_png_rgba("texture1.png", &texw, &texh, 1))) 
 		return -1;
 
 	MVP.setOrtho(-2.66, 2.66, -2, 2, 1, -1);
 
-	glViewport(0, 0, c->width, c->height);
+	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
@@ -78,7 +85,7 @@ int scene_init(struct ctxt *c) {
 	return 0;
 }
 
-int scene_draw(struct ctxt *c) {
+int TestApp::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	pgm.use();
@@ -100,3 +107,8 @@ int scene_draw(struct ctxt *c) {
 	return 0;
 }
 
+int main(int argc, char **argv) {
+	TestApp app;
+	app.setOptions(argc, argv);
+	return app.run();
+}

@@ -18,30 +18,36 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "app.h"
 #include "util.h"
-#include "glue.h"
 #include "matrix.h"
 #include "program.h"
 
 #include <math.h>
 
-void *texdata;
-unsigned texw, texh;
+class TestApp : public App {
+public:
+	int init(void);
+	int render(void);
+private:
+	void *texdata;
+	unsigned texw, texh;
 
-GLuint tex0;
-GLuint aVertex, aTexCoord;
-GLuint uMVP, uTexture;
+	GLuint tex0;
+	GLuint aVertex, aTexCoord;
+	GLuint uMVP, uTexture;
 
-Program pgm;
-mat4 perspective;
-mat4 MVP;
+	Program pgm;
+	mat4 perspective;
+	mat4 MVP;
 
-float a = 0.0;
+	float a;
 
-struct model *m;
+	struct model *m;
+};
 
-int scene_init(struct ctxt *c) {
-	float aspect = ((float) c->width) / ((float) c->height);
+int TestApp::init(void) {
+	a = 0.0;
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
@@ -49,9 +55,9 @@ int scene_init(struct ctxt *c) {
 	if (!(m = load_wavefront_obj("cube.obj")))
 		return -1;
 
-	perspective.setPerspective(D2R(60.0), aspect, 1.0, 10.0);
+	perspective.setPerspective(D2R(60.0), aspect(), 1.0, 10.0);
 
-	glViewport(0, 0, c->width, c->height);
+	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
@@ -79,7 +85,7 @@ int scene_init(struct ctxt *c) {
 	return 0;
 }
 
-int scene_draw(struct ctxt *c) {
+int TestApp::render(void) {
 	mat4 camera;
 
 	camera.identity();
@@ -110,5 +116,11 @@ int scene_draw(struct ctxt *c) {
 	glDrawElements(GL_TRIANGLES, m->icount, GL_UNSIGNED_SHORT, m->idx);
 
 	return 0;
+}
+
+int main(int argc, char **argv) {
+	TestApp app;
+	app.setOptions(argc, argv);
+	return app.run();
 }
 

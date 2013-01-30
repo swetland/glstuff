@@ -13,26 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef _SDL_GLUE_H_
-#define _SDL_GLUE_H_
+#ifndef _OPEN_GL_H_
+#define _OPEN_GL_H_
 
 #ifndef _WIN32
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
 #include <SDL_opengl.h>
-
-struct ctxt {
-	unsigned width;
-	unsigned height;
-	void *data;
-};
-
-int scene_init(struct ctxt *c);
-int scene_draw(struct ctxt *c);
-
-int shader_compile(const char *vshader, const char *fshader,
-		GLuint *pgm, GLuint *vshd, GLuint *fshd);
 
 #ifdef _WIN32
 #ifndef GLUE_DEFINE_EXTENSIONS
@@ -79,6 +67,5 @@ struct {
 	EFUNC(glUniformMatrix4fv), EFUNC(glUseProgram), EFUNC(glUniform1i), EFUNC(glUniform4fv), EFUNC(glVertexAttribPointer),
 };
 #endif
-
 #endif
-#endif 
+#endif

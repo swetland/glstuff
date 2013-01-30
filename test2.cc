@@ -18,27 +18,33 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "app.h"
 #include "util.h"
-#include "glue.h"
 #include "program.h"
 #include "matrix.h"
 
 #include <math.h>
 
-void *texdata;
-unsigned texw, texh;
+class TestApp : public App {
+public:
+	int init(void);
+	int render(void);
+private:
+	void *texdata;
+	unsigned texw, texh;
 
-GLuint tex0;
-GLuint aVertex, aTexCoord;
-GLuint uMVP, uTexture;
+	GLuint tex0;
+	GLuint aVertex, aTexCoord;
+	GLuint uMVP, uTexture;
 
-Program pgm;
-mat4 perspective;
-mat4 MVP;
+	Program pgm;
+	mat4 perspective;
+	mat4 MVP;
 
-float a = 0.0;
+	float a;
+};
 
-GLfloat data[] = {
+static GLfloat data[] = {
 	-0.5f, 0.5f, 0.5f, 0.25, 0.75,
 	-0.5f, -0.5f, 0.5f, 0.25, 0.50,
 	0.5f, -0.5f, 0.5f, 0.50, 0.50,
@@ -70,7 +76,7 @@ GLfloat data[] = {
 	0.5f, -0.5f, 0.5f, 0.50, 0.50,
 };
 
-GLubyte indices[] = {
+static GLubyte indices[] = {
 	0, 1, 2, 3, 0, 2,
 	4, 5, 6, 7, 4, 6,
 	8, 9, 10, 11, 8, 10,
@@ -79,15 +85,15 @@ GLubyte indices[] = {
 	20, 21, 22, 23, 20, 22,
 };
 
-int scene_init(struct ctxt *c) {
-	float aspect = ((float) c->width) / ((float) c->height);
+int TestApp::init(void) {
+	a = 0.0;
 
 	if (!(texdata = load_png_rgba("cube-texture.png", &texw, &texh, 1)))
 		return -1;
 
-	perspective.setPerspective(D2R(60.0), aspect, 1.0, 10.0);
+	perspective.setPerspective(D2R(60.0), aspect(), 1.0, 10.0);
 
-	glViewport(0, 0, c->width, c->height);
+	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
 	glClearDepth(1.0f);
 
@@ -115,7 +121,7 @@ int scene_init(struct ctxt *c) {
 	return 0;
 }
 
-int scene_draw(struct ctxt *c) {
+int TestApp::render(void) {
 	mat4 camera;
 
 	camera.identity();
@@ -146,5 +152,11 @@ int scene_draw(struct ctxt *c) {
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
 
 	return 0;
+}
+
+int main(int argc, char **argv) {
+	TestApp app;
+	app.setOptions(argc, argv);
+	return app.run();
 }
 

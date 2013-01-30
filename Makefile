@@ -7,8 +7,12 @@ SDLLIBS := $(shell $(SDLCFG) --libs)
 
 CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
 CFLAGS += -ffunction-sections -fdata-sections
-LFLAGS := -Wl,-gc-sections -static-libstdc++
+
+LFLAGS := -static-libstdc++
+LFLAGS += -Wl,-gc-sections
+
 CXXFLAGS := $(CFLAGS)
+
 LIBS := stuff.a $(SDLLIBS) -lGL -lm -lpng
 
 all:: everything
@@ -24,7 +28,7 @@ stuff.a: $(LIBOBJS)
 	rm -f stuff.a
 	ar cr stuff.a $(LIBOBJS)
 
-APPS := test1 test2 test3 test4 test5 test2d 
+APPS := test1 test2 test3 test4 test5 
 
 define build-test
 $1: $1.o stuff.a

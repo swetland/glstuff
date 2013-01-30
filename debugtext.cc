@@ -21,8 +21,8 @@
 #include <unistd.h>
 #endif
 
+#include "opengl.h"
 #include "util.h"
-#include "glue.h"
 #include "matrix.h"
 
 #include "debugtext.h"
