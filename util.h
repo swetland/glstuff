@@ -35,5 +35,11 @@ struct model {
 
 struct model *load_wavefront_obj(const char *fn);
 
+/* simplex noise */
+float snoise(float x);
+float snoise(float x, float y);
+float snoise(float x, float y, float z);
+float snoise(float x, float y, float z, float w);
+
 #endif
 
