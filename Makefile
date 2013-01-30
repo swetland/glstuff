@@ -1,4 +1,6 @@
 
+APPS := test1 test2 test3 test4 test5 noisetoy
+
 SDLCFG := sdl-config
 #SDLCFG := /work/sdl/bin/sdl2-config
 
@@ -7,6 +9,7 @@ SDLLIBS := $(shell $(SDLCFG) --libs)
 
 CFLAGS := $(SDLFLAGS) -DWITH_SDL2=0 -Wall -g -O2
 CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -std=c++0x
 
 LFLAGS := -static-libstdc++
 LFLAGS += -Wl,-gc-sections
@@ -23,12 +26,11 @@ LIBOBJS += loadobj.o
 LIBOBJS += matrix.o program.o
 LIBOBJS += debugtext.o
 LIBOBJS += sdlglue.o
+LIBOBJS += simplexnoise.o
 
 stuff.a: $(LIBOBJS)
 	rm -f stuff.a
 	ar cr stuff.a $(LIBOBJS)
-
-APPS := test1 test2 test3 test4 test5 
 
 define build-test
 $1: $1.o stuff.a
