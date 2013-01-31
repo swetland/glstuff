@@ -114,9 +114,11 @@
     <ClCompile Include="..\..\test5.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\app.h" />
     <ClInclude Include="..\..\DebugText.h" />
     <ClInclude Include="..\..\glue.h" />
     <ClInclude Include="..\..\matrix.h" />
+    <ClInclude Include="..\..\opengl.h" />
     <ClInclude Include="..\..\program.h" />
     <ClInclude Include="..\..\util.h" />
   </ItemGroup>
